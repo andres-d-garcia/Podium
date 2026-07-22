@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await openDB();
     document.querySelector('podium-footer').setAttribute('db-status', 'connected');
     initRouter();
+    await loadSampleData();
     await restoreActiveLeague();
     router.start();
   } catch (e) {
@@ -52,10 +53,12 @@ async function refreshActiveLeagueIndicator() {
       nav.setAttribute('league-name', league.name);
       nav.setAttribute('league-sport', sport.name);
       nav.setAttribute('league-icon', sport.icon);
+      document.body.setAttribute('data-sport', league.sport);
     } else {
       nav.removeAttribute('league-name');
       nav.removeAttribute('league-sport');
       nav.removeAttribute('league-icon');
+      document.body.removeAttribute('data-sport');
     }
   }
 }
