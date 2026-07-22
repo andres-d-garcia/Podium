@@ -38,6 +38,7 @@ async function renderLeagues(main) {
       </div>
       <div style="margin-top:0.75rem;display:flex;gap:0.5rem;flex-wrap:wrap">
         ${league.isActive !== '1' ? `<button class="btn btn-sm btn-primary" data-activate="${league.id}">Activar</button>` : ''}
+        ${canGenerate(league, teams.length) ? `<button class="btn btn-sm btn-success" data-generate="${league.id}" style="background:var(--success);color:#000">${league.mode === 'liga' ? 'Generar fixture' : 'Generar bracket'}</button>` : ''}
         <button class="btn btn-sm btn-secondary" data-edit="${league.id}">Editar</button>
         <button class="btn btn-sm btn-secondary" data-export="${league.id}">Exportar</button>
         <button class="btn btn-sm btn-danger" data-delete="${league.id}">Eliminar</button>
@@ -48,6 +49,7 @@ async function renderLeagues(main) {
       showToast(`"${league.name}" activada`, 'success');
       renderLeagues(main);
     });
+    card.querySelector('[data-generate]')?.addEventListener('click', async () => generateMatches(league, main));
     card.querySelector('[data-edit]').addEventListener('click', () => showLeagueForm(main, league));
     card.querySelector('[data-export]').addEventListener('click', () => exportLeague(league.id));
     card.querySelector('[data-delete]').addEventListener('click', () => deleteLeague(main, league));
@@ -218,4 +220,40 @@ async function importLeagueFile(main, file) {
   } catch (e) {
     showToast('Error al importar: formato inválido', 'error');
   }
+}
+
+function canGenerate(league, teamCount) {
+  if (league.mode === 'liga') return teamCount >= 2;
+  if (league.mode === 'eliminacion') return teamCount === (league.bracketSize || 4);
+  return false;
+}
+
+async function generateMatches(league, main) {
+  const existing = await MatchDB.getByLeague(league.id);
+  if (existing.length > 0) {
+    const ok = await confirmAction('Ya hay partidos generados. ¿Generar de nuevo? Se eliminarán todos los existentes.');
+    if (!ok) return;
+    for (const m of existing) {
+      const events = await EventDB.getByMatch(m.id);
+      for (const e of events) await EventDB.remove(e.id);
+      await MatchDB.remove(m.id);
+    }
+  }
+
+  const teams = await TeamDB.getByLeague(league.id);
+  showLoading(true);
+
+  if (league.mode === 'liga') {
+    const fixture = await MatchDB.generateFixture(league.id, teams, league.rounds || 1);
+    for (const match of fixture) {
+      await addItem('matches', match);
+    }
+    showToast(`Fixture generado: ${fixture.length} partidos`, 'success');
+  } else {
+    await MatchDB.generateBracket(league.id, teams);
+    showToast('Bracket generado', 'success');
+  }
+
+  showLoading(false);
+  renderLeagues(main);
 }
