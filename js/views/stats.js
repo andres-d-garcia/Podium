@@ -46,7 +46,7 @@ async function renderStats(main) {
     const standings = main.querySelector('#standings-table');
     if (standings) { standings.data = teams; standings.sport = sport; }
   } else {
-    const bracketMatches = allMatches.filter(m => m.round > 0);
+    const bracketMatches = allMatches.filter(m => m.bracket || m.round > 0);
     standingsSection.innerHTML = `
       <h3 style="margin-bottom:0.75rem">Bracket del torneo</h3>
       <podium-bracket id="bracket-view"></podium-bracket>

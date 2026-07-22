@@ -69,7 +69,7 @@ async function renderMatchDetail(main, params) {
           <div style="font-weight:600">${away?.name || '???'}</div>
         </div>
       </div>
-      <p style="color:var(--text-secondary);font-size:0.9rem">${date} · <span class="match-status ${match.status}">${match.status === 'finished' ? 'Finalizado' : match.status === 'scheduled' ? 'Programado' : 'Pendiente'}</span></p>
+      <p style="color:var(--text-secondary);font-size:0.9rem">${date} · <span class="match-status ${match.status}">${match.status === 'finished' ? 'Finalizado' : match.status === 'scheduled' ? 'Programado' : 'Pendiente'}</span>${match.bracket && match.bracket !== 'winners' ? ` · ${match.bracket === 'losers' ? 'Losers Bracket' : 'Gran Final'} R${match.round}` : ''}</p>
     </div>
 
     ${match.status !== 'finished' ? `

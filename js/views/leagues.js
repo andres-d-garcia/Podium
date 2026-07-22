@@ -31,7 +31,7 @@ async function renderLeagues(main) {
             ${sport.name} · ${league.season}
           </p>
           <p style="color:var(--text-muted);font-size:0.8rem;margin:0.25rem 0 0">
-            ${teams.length} equipos · ${league.mode === 'liga' ? `Liga (${league.rounds === 2 ? 'Ida y vuelta' : 'Una vuelta'})` : `Eliminación directa (${league.bracketSize})`}
+            ${teams.length} equipos · ${league.mode === 'liga' ? `Liga (${league.rounds === 2 ? 'Ida y vuelta' : 'Una vuelta'})` : `Eliminación directa${league.doubleElimination ? ' (doble)' : ''} (${league.bracketSize})`}
           </p>
         </div>
         ${league.isActive === '1' ? '<span style="background:var(--success);color:#000;padding:0.15rem 0.5rem;border-radius:4px;font-size:0.7rem;font-weight:700">ACTIVA</span>' : ''}
@@ -139,6 +139,11 @@ function showLeagueForm(main, league) {
               <option value="16">16 equipos</option>
             </select>
           </div>
+          <div class="form-group" style="margin-top:0.75rem">
+            <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;text-transform:none;letter-spacing:0;font-size:0.85rem">
+              <input type="checkbox" id="f-double-elim" value="1"> Doble eliminación (con losers bracket)
+            </label>
+          </div>
         `;
       }
     };
@@ -164,6 +169,7 @@ function showLeagueForm(main, league) {
         data.rounds = parseInt(modal.querySelector('#f-rounds').value);
       } else {
         data.bracketSize = parseInt(modal.querySelector('#f-bracket-size').value);
+        data.doubleElimination = modal.querySelector('#f-double-elim')?.checked || false;
       }
       await LeagueDB.create(data);
       showToast('Liga creada', 'success');
@@ -250,8 +256,13 @@ async function generateMatches(league, main) {
     }
     showToast(`Fixture generado: ${fixture.length} partidos`, 'success');
   } else {
-    await MatchDB.generateBracket(league.id, teams);
-    showToast('Bracket generado', 'success');
+    if (league.doubleElimination) {
+      await MatchDB.generateDoubleBracket(league.id, teams);
+      showToast('Bracket doble eliminación generado', 'success');
+    } else {
+      await MatchDB.generateBracket(league.id, teams);
+      showToast('Bracket generado', 'success');
+    }
   }
 
   showLoading(false);

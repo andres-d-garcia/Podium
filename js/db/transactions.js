@@ -24,6 +24,8 @@ async function finalizarPartido(matchId) {
 
       const winnerId = homeScore > awayScore ? match.homeTeamId :
                         awayScore > homeScore ? match.awayTeamId : null;
+      const loserId = winnerId && winnerId === match.homeTeamId ? match.awayTeamId :
+                       winnerId && winnerId === match.awayTeamId ? match.homeTeamId : null;
 
       match.status = 'finished';
       match.winnerId = winnerId;
@@ -104,6 +106,19 @@ async function finalizarPartido(matchId) {
           }
         };
       }
+
+      if (match.loserMatchId && loserId) {
+        const loserReq = matchStore.get(match.loserMatchId);
+        loserReq.onsuccess = () => {
+          const loserMatch = loserReq.result;
+          if (loserMatch) {
+            if (match.loserSlot === 'home') loserMatch.homeTeamId = loserId;
+            else loserMatch.awayTeamId = loserId;
+            if (loserMatch.homeTeamId && loserMatch.awayTeamId) loserMatch.status = 'scheduled';
+            matchStore.put(loserMatch);
+          }
+        };
+      }
     };
 
     tx.oncomplete = () => resolve();
@@ -136,7 +151,29 @@ async function deshacerPartido(matchId) {
             reject(new Error('No se puede deshacer: el partido de la siguiente ronda ya está finalizado. Deshace ese primero.'));
             return;
           }
-          undoMatch(match, matchStore, teamStore, playerStore, eventStore, next);
+          if (match.loserMatchId) {
+            const loserReq2 = matchStore.get(match.loserMatchId);
+            loserReq2.onsuccess = () => {
+              const loserMatch = loserReq2.result;
+              if (loserMatch && loserMatch.status === 'finished') {
+                reject(new Error('No se puede deshacer: el partido del losers bracket ya está finalizado. Deshace ese primero.'));
+                return;
+              }
+              undoMatch(match, matchStore, teamStore, playerStore, eventStore, next);
+            };
+          } else {
+            undoMatch(match, matchStore, teamStore, playerStore, eventStore, next);
+          }
+        };
+      } else if (match.loserMatchId) {
+        const loserReq2 = matchStore.get(match.loserMatchId);
+        loserReq2.onsuccess = () => {
+          const loserMatch = loserReq2.result;
+          if (loserMatch && loserMatch.status === 'finished') {
+            reject(new Error('No se puede deshacer: el partido del losers bracket ya está finalizado. Deshace ese primero.'));
+            return;
+          }
+          undoMatch(match, matchStore, teamStore, playerStore, eventStore, null);
         };
       } else {
         undoMatch(match, matchStore, teamStore, playerStore, eventStore, null);
@@ -230,6 +267,19 @@ function undoMatch(match, matchStore, teamStore, playerStore, eventStore, nextMa
     else nextMatch.awayTeamId = null;
     nextMatch.status = 'pending';
     matchStore.put(nextMatch);
+  }
+
+  if (match.loserMatchId) {
+    const loserReq = matchStore.get(match.loserMatchId);
+    loserReq.onsuccess = () => {
+      const loserMatch = loserReq.result;
+      if (loserMatch) {
+        if (match.loserSlot === 'home') loserMatch.homeTeamId = null;
+        else loserMatch.awayTeamId = null;
+        if (!loserMatch.homeTeamId || !loserMatch.awayTeamId) loserMatch.status = 'pending';
+        matchStore.put(loserMatch);
+      }
+    };
   }
 }
 

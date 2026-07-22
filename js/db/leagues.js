@@ -21,6 +21,7 @@ const LeagueDB = {
       description: data.description || '',
       rounds: data.mode === 'liga' ? (data.rounds || 1) : null,
       bracketSize: data.mode === 'eliminacion' ? (data.bracketSize || 4) : null,
+      doubleElimination: data.doubleElimination || false,
       isActive: '0',
       createdAt: new Date().toISOString(),
     };

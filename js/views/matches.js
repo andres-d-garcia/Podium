@@ -52,7 +52,7 @@ async function renderMatches(main) {
           <span style="flex:1;font-weight:600">${away?.name || '???'}</span>
         </div>
         <div style="display:flex;justify-content:space-between;margin-top:0.5rem;font-size:0.8rem;color:var(--text-secondary)">
-          <span>${date} ${league.mode === 'eliminacion' ? `· Ronda ${m.round}` : ''}</span>
+          <span>${date} ${league.mode === 'eliminacion' ? `· ${m.bracket === 'winners' ? 'WB' : m.bracket === 'losers' ? 'LB' : m.bracket === 'grand_final' ? 'GF' : ''} R${m.round}` : ''}</span>
           <span class="match-status ${m.status}">
             ${m.status === 'finished' ? 'Finalizado' : m.status === 'scheduled' ? 'Programado' : 'Pendiente'}
           </span>
