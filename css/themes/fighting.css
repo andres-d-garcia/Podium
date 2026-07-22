@@ -1,0 +1,10 @@
+[data-sport="fighting"] {
+  --sport-accent: #fbbf24;
+  --sport-secondary: #7c2d12;
+  --sport-gradient: linear-gradient(135deg, #fbbf24 0%, #dc2626 100%);
+}
+
+[data-sport="fighting"] .sport-badge {
+  background: #fbbf24;
+  color: #000;
+}

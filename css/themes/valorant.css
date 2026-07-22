@@ -1,0 +1,10 @@
+[data-sport="valorant"] {
+  --sport-accent: #ff4655;
+  --sport-secondary: #0f1923;
+  --sport-gradient: linear-gradient(135deg, #ff4655 0%, #0f1923 100%);
+}
+
+[data-sport="valorant"] .sport-badge {
+  background: #ff4655;
+  color: white;
+}

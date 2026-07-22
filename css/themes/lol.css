@@ -1,0 +1,10 @@
+[data-sport="lol"] {
+  --sport-accent: #c8aa6e;
+  --sport-secondary: #0a1428;
+  --sport-gradient: linear-gradient(135deg, #c8aa6e 0%, #0a1428 100%);
+}
+
+[data-sport="lol"] .sport-badge {
+  background: #c8aa6e;
+  color: #000;
+}
