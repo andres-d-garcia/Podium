@@ -44,7 +44,7 @@ async function renderStats(main) {
       <podium-standings id="standings-table"></podium-standings>
     `;
     const standings = main.querySelector('#standings-table');
-    if (standings) standings.data = teams;
+    if (standings) { standings.data = teams; standings.sport = sport; }
   } else {
     const bracketMatches = allMatches.filter(m => m.round > 0);
     standingsSection.innerHTML = `

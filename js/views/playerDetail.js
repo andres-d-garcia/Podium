@@ -7,6 +7,8 @@ async function renderPlayerDetail(main, params) {
     return;
   }
 
+  const league = await getActiveLeague();
+  const sport = league ? getSport(league.sport) : SPORTS.valorant;
   const team = await TeamDB.getById(player.teamId);
   const allEvents = await EventDB.getByPlayer(player.id);
   const matchIds = [...new Set(allEvents.map(e => e.matchId))];
@@ -67,11 +69,11 @@ async function renderPlayerDetail(main, params) {
     div.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center">
         <span>vs <strong>${opponent?.name || '???'}</strong> <span style="color:var(--text-muted);font-size:0.85rem">${date}</span></span>
-        <span><strong>${m.homeScore} - ${m.awayScore}</strong></span>
+        <span><strong>${sport.terms.scoreLabel ? sport.terms.scoreLabel + ': ' : ''}${m.homeScore} - ${m.awayScore}</strong></span>
         <span style="color:${color};font-weight:700">${result}</span>
       </div>
       <div style="font-size:0.8rem;color:var(--accent);margin-top:0.25rem">
-        ${playerEvents.length} anotaciones · ${playerEvents.map(e => e.minute ? `min ${e.minute}` : '').filter(Boolean).join(', ')}
+        ${playerEvents.length} ${sport.terms.eventNamePlural.toLowerCase()} · ${playerEvents.map(e => `${e.type || sport.terms.eventName}${e.minute ? ` (min ${e.minute})` : ''}`).join(', ')}
       </div>
     `;
     div.onclick = () => router.navigate(`match/${m.id}`);

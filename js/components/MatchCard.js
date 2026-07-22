@@ -6,6 +6,10 @@ class MatchCard extends HTMLElement {
 
   set data(val) {
     this._data = val;
+  }
+
+  set sport(val) {
+    this._sport = val;
     this.render();
   }
 
@@ -14,6 +18,7 @@ class MatchCard extends HTMLElement {
     const m = this._data;
     const home = await TeamDB.getById(m.homeTeamId);
     const away = await TeamDB.getById(m.awayTeamId);
+    const scoreLabel = this._sport?.terms?.scoreLabel;
     const homeInitials = home ? home.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '??';
     const awayInitials = away ? away.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '??';
     const date = new Date(m.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -30,7 +35,7 @@ class MatchCard extends HTMLElement {
             <span style="font-weight:600;font-size:0.9rem">${home ? home.name : '???'}</span>
           </div>
           ${m.status === 'finished'
-            ? `<div class="match-score">${m.homeScore} - ${m.awayScore}</div>`
+            ? `<div class="match-score">${scoreLabel ? `${scoreLabel}: ` : ''}${m.homeScore} - ${m.awayScore}</div>`
             : `<div class="match-vs">VS</div>`
           }
           <div class="match-team away">

@@ -9,12 +9,18 @@ class StandingsTable extends HTMLElement {
     this.render();
   }
 
+  set sport(val) {
+    this._sport = val;
+    this.render();
+  }
+
   render() {
     if (!this._data || this._data.length === 0) {
       this.shadowRoot.innerHTML = `<p style="color:var(--text-muted)">No hay equipos en la liga</p>`;
       return;
     }
 
+    const abbr = this._sport?.terms?.scoreAbbr || { for: 'PF', against: 'PC' };
     const sorted = [...this._data].sort((a, b) => {
       if (b.stats.pts !== a.stats.pts) return b.stats.pts - a.stats.pts;
       if (b.stats.dif !== a.stats.dif) return b.stats.dif - a.stats.dif;
@@ -33,8 +39,8 @@ class StandingsTable extends HTMLElement {
             <th>PG</th>
             <th>PE</th>
             <th>PP</th>
-            <th>PF</th>
-            <th>PC</th>
+            <th>${abbr.for}</th>
+            <th>${abbr.against}</th>
             <th>DIF</th>
             <th>PTS</th>
           </tr>

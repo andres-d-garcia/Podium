@@ -32,7 +32,8 @@ async function renderDashboard(main) {
   if (lastMatch) {
     const home = await TeamDB.getById(lastMatch.homeTeamId);
     const away = await TeamDB.getById(lastMatch.awayTeamId);
-    lastHtml = `<p><strong>${home?.name || '???'}</strong> ${lastMatch.homeScore} - ${lastMatch.awayScore} <strong>${away?.name || '???'}</strong></p>`;
+    const sl = sport.terms.scoreLabel;
+    lastHtml = `<p><strong>${home?.name || '???'}</strong> ${sl ? `${sl}: ` : ''}${lastMatch.homeScore} - ${lastMatch.awayScore} <strong>${away?.name || '???'}</strong></p>`;
   }
 
   let topHtml = '';

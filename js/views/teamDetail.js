@@ -9,6 +9,8 @@ async function renderTeamDetail(main, params) {
 
   const players = await PlayerDB.getByTeam(team.id);
   const activeLeague = await getActiveLeague();
+  const sport = activeLeague ? getSport(activeLeague.sport) : SPORTS.valorant;
+  const scoreAbbr = sport.terms.scoreAbbr;
   const allMatches = await MatchDB.getByTeam(team.id);
   const matches = allMatches.filter(m => m.leagueId === activeLeague?.id);
   const finished = matches.filter(m => m.status === 'finished').sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -41,8 +43,8 @@ async function renderTeamDetail(main, params) {
       <div class="stat-card"><div class="stat-value">${team.stats.pg}</div><div class="stat-label">PG</div></div>
       <div class="stat-card"><div class="stat-value">${team.stats.pe}</div><div class="stat-label">PE</div></div>
       <div class="stat-card"><div class="stat-value">${team.stats.pp}</div><div class="stat-label">PP</div></div>
-      <div class="stat-card"><div class="stat-value">${team.stats.pf}</div><div class="stat-label">PF</div></div>
-      <div class="stat-card"><div class="stat-value">${team.stats.pc}</div><div class="stat-label">PC</div></div>
+      <div class="stat-card"><div class="stat-value">${team.stats.pf}</div><div class="stat-label">${scoreAbbr.for}</div></div>
+      <div class="stat-card"><div class="stat-value">${team.stats.pc}</div><div class="stat-label">${scoreAbbr.against}</div></div>
       <div class="stat-card"><div class="stat-value">${team.stats.dif}</div><div class="stat-label">DIF</div></div>
       <div class="stat-card"><div class="stat-value">${team.stats.pts}</div><div class="stat-label">PTS</div></div>
     </div>
@@ -110,7 +112,7 @@ async function renderTeamDetail(main, params) {
         <div class="match-card card" style="cursor:pointer;margin-bottom:0.5rem;padding:0.75rem" data-match="${m.id}">
           <div style="display:flex;justify-content:space-between;align-items:center">
             <span>vs <strong>${opp?.name || '???'}</strong></span>
-            <span><strong>${m.homeScore} - ${m.awayScore}</strong></span>
+            <span><strong>${sport.terms.scoreLabel ? sport.terms.scoreLabel + ': ' : ''}${m.homeScore} - ${m.awayScore}</strong></span>
             <span style="color:${color};font-weight:700">${result}</span>
           </div>
           <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.25rem">${date}</div>

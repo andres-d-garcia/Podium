@@ -32,6 +32,7 @@ async function renderMatchDetail(main, params) {
         const player = [...homePlayers, ...awayPlayers].find(p => p.id === ev.playerId);
         return `<div class="event-item">
           <span>${player?.name || '???'}</span>
+          <span class="event-badge">${ev.type || sport.terms.eventName}</span>
           <span class="event-minute">${ev.minute ? `min ${ev.minute}` : ''}</span>
         </div>`;
       }).join('') || '<p style="color:var(--text-muted);font-size:0.85rem">Sin eventos</p>';
@@ -100,6 +101,7 @@ async function renderMatchDetail(main, params) {
           matchId: match.id,
           playerId: data.playerId,
           teamId: data.teamId,
+          type: data.type || null,
           minute: data.minute || null,
         });
         const updatedEvents = await EventDB.getByMatch(match.id);

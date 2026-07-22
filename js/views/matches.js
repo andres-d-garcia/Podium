@@ -6,6 +6,7 @@ async function renderMatches(main) {
   }
 
   showLoading(true);
+  const sport = getSport(league.sport);
   const teams = await TeamDB.getByLeague(league.id);
   const allMatches = await MatchDB.getByLeague(league.id);
   let filtered = [...allMatches];
@@ -45,7 +46,7 @@ async function renderMatches(main) {
         <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem">
           <span style="flex:1;text-align:right;font-weight:600">${home?.name || '???'}</span>
           ${m.status === 'finished'
-            ? `<span style="font-size:1.25rem;font-weight:800;font-family:var(--font-mono);min-width:60px;text-align:center">${m.homeScore} - ${m.awayScore}</span>`
+            ? `<span style="font-size:1.25rem;font-weight:800;font-family:var(--font-mono);min-width:60px;text-align:center">${sport.terms.scoreLabel ? sport.terms.scoreLabel + ': ' : ''}${m.homeScore} - ${m.awayScore}</span>`
             : `<span style="color:var(--text-muted);font-weight:600;min-width:60px;text-align:center">VS</span>`
           }
           <span style="flex:1;font-weight:600">${away?.name || '???'}</span>

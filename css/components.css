@@ -474,6 +474,17 @@
   font-size: 0.8rem;
 }
 
+.event-item .event-badge {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  border-radius: 4px;
+  background: var(--accent-muted, rgba(255,70,85,0.15));
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
 .btn-back {
   color: var(--text-secondary);
   font-size: 0.85rem;
