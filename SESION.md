@@ -41,6 +41,11 @@
 - [ ] `js/data/sample.js` — datos de ejemplo precargados
 - [ ] `README.md`
 
+## GitHub
+- Repositorio: https://github.com/andres-d-garcia/podium
+- GitHub Pages: https://andres-d-garcia.github.io/podium/
+- Descripción: Podium - Gestor de Ligas eSports. SPA en HTML, CSS y JavaScript vanilla con IndexedDB.
+
 ## Decisiones de diseño
 - 3 eSports: Valorant, Fighting Games, League of Legends
 - Logo: podio inclinado (skewX -18°) con 2 barras + letra P, colores: #ff4655, #c8aa6e, #ece8e1
