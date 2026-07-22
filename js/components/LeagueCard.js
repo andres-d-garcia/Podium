@@ -30,7 +30,7 @@ class LeagueCard extends HTMLElement {
               ${sport.name} · ${l.season}
             </p>
           </div>
-          ${l.isActive ? '<span style="background:var(--success);color:#000;padding:0.15rem 0.5rem;border-radius:4px;font-size:0.7rem;font-weight:700">ACTIVA</span>' : ''}
+          ${l.isActive === '1' ? '<span style="background:var(--success);color:#000;padding:0.15rem 0.5rem;border-radius:4px;font-size:0.7rem;font-weight:700">ACTIVA</span>' : ''}
         </div>
         <div style="margin-top:0.75rem;font-size:0.8rem;color:var(--text-muted)">
           ${modeText}

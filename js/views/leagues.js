@@ -34,10 +34,10 @@ async function renderLeagues(main) {
             ${teams.length} equipos · ${league.mode === 'liga' ? `Liga (${league.rounds === 2 ? 'Ida y vuelta' : 'Una vuelta'})` : `Eliminación directa (${league.bracketSize})`}
           </p>
         </div>
-        ${league.isActive ? '<span style="background:var(--success);color:#000;padding:0.15rem 0.5rem;border-radius:4px;font-size:0.7rem;font-weight:700">ACTIVA</span>' : ''}
+        ${league.isActive === '1' ? '<span style="background:var(--success);color:#000;padding:0.15rem 0.5rem;border-radius:4px;font-size:0.7rem;font-weight:700">ACTIVA</span>' : ''}
       </div>
       <div style="margin-top:0.75rem;display:flex;gap:0.5rem;flex-wrap:wrap">
-        ${!league.isActive ? `<button class="btn btn-sm btn-primary" data-activate="${league.id}">Activar</button>` : ''}
+        ${league.isActive !== '1' ? `<button class="btn btn-sm btn-primary" data-activate="${league.id}">Activar</button>` : ''}
         <button class="btn btn-sm btn-secondary" data-edit="${league.id}">Editar</button>
         <button class="btn btn-sm btn-secondary" data-export="${league.id}">Exportar</button>
         <button class="btn btn-sm btn-danger" data-delete="${league.id}">Eliminar</button>
@@ -177,7 +177,7 @@ async function deleteLeague(main, league) {
   if (!confirmed) return;
 
   await eliminarLigaEnCascada(league.id);
-  if (league.isActive) {
+  if (league.isActive === '1') {
     localStorage.removeItem('podium-active-league');
   }
   showToast(`Liga "${league.name}" eliminada`, 'success');
