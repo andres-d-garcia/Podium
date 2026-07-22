@@ -196,6 +196,16 @@ label {
   margin-bottom: 1rem;
 }
 
+.table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 1rem;
+}
+
+.table-wrapper table {
+  min-width: 650px;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -269,6 +279,13 @@ tr:hover td {
   to { opacity: 1; transform: translateY(0); }
 }
 
+@media (max-width: 1024px) {
+  #app {
+    padding: 1.5rem;
+    padding-top: 5rem;
+  }
+}
+
 @media (max-width: 768px) {
   #app {
     padding: 1rem;
@@ -281,5 +298,24 @@ tr:hover td {
 
   .grid-list {
     grid-template-columns: 1fr;
+  }
+
+  .section-title {
+    font-size: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  #app {
+    padding: 0.75rem;
+    padding-top: 4rem;
+  }
+
+  .card {
+    padding: 1rem;
+  }
+
+  .modal-content {
+    padding: 1.25rem;
   }
 }

@@ -25,7 +25,7 @@ class EventForm extends HTMLElement {
       <link rel="stylesheet" href="css/components.css">
       <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius);padding:1rem;margin-bottom:1rem">
         <h4 style="margin:0 0 0.75rem;font-size:0.9rem;color:var(--text-secondary)">Registrar ${term.eventName}</h4>
-        <div class="form-row" style="grid-template-columns:1fr 1fr 1fr 1fr auto;gap:0.65rem">
+        <div class="form-row" style="gap:0.65rem">
           <div class="form-group">
             <label>Equipo</label>
             <select id="ev-team">

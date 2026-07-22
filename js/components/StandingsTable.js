@@ -30,6 +30,7 @@ class StandingsTable extends HTMLElement {
     this.shadowRoot.innerHTML = `
       <link rel="stylesheet" href="css/main.css">
       <link rel="stylesheet" href="css/components.css">
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
       <table class="standings-table">
         <thead>
           <tr>
@@ -62,6 +63,7 @@ class StandingsTable extends HTMLElement {
           `).join('')}
         </tbody>
       </table>
+      </div>
     `;
 
     this.shadowRoot.querySelectorAll('tr[data-id]').forEach(row => {

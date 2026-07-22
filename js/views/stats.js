@@ -41,7 +41,7 @@ async function renderStats(main) {
   if (league.mode === 'liga') {
     standingsSection.innerHTML = `
       <h3 style="margin-bottom:0.75rem">Tabla de posiciones</h3>
-      <podium-standings id="standings-table"></podium-standings>
+      <div class="table-wrapper"><podium-standings id="standings-table"></podium-standings></div>
     `;
     const standings = main.querySelector('#standings-table');
     if (standings) { standings.data = teams; standings.sport = sport; }
