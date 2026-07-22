@@ -16,7 +16,7 @@ async function renderMatchDetail(main, params) {
   const awayPlayers = away ? await PlayerDB.getByTeam(away.id) : [];
   const date = new Date(match.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
-  const autoScore = sport.id !== 'valorant';
+  const autoScore = sport.id !== 'valorant' && sport.id !== 'fighting';
 
   function renderEvents() {
     const homeCol = main.querySelector('#ev-home');
