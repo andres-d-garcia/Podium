@@ -8,7 +8,7 @@ const SAMPLE_DATA = {
       description: 'Liga de Valorant de prueba',
       rounds: 1,
       bracketSize: null,
-      isActive: false,
+      isActive: '0',
     },
     {
       name: 'EVO 2026',
@@ -18,7 +18,7 @@ const SAMPLE_DATA = {
       description: 'Torneo de fighting games',
       rounds: null,
       bracketSize: 4,
-      isActive: false,
+      isActive: '0',
     },
     {
       name: 'LCS 2026',
@@ -28,7 +28,7 @@ const SAMPLE_DATA = {
       description: 'Liga de League of Legends',
       rounds: 2,
       bracketSize: null,
-      isActive: false,
+      isActive: '0',
     },
   ],
   teamNames: {

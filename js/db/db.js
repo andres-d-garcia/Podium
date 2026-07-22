@@ -8,14 +8,21 @@ function openDB() {
 
     request.onupgradeneeded = (event) => {
       const db = event.target.result;
+      const oldVersion = event.oldVersion;
+
+      if (oldVersion > 0) {
+        for (const storeName of Object.keys(STORES)) {
+          if (db.objectStoreNames.contains(storeName)) {
+            db.deleteObjectStore(storeName);
+          }
+        }
+      }
 
       for (const [storeName, config] of Object.entries(STORES)) {
-        if (!db.objectStoreNames.contains(storeName)) {
-          const store = db.createObjectStore(storeName, config);
-          const indexes = INDEXES[storeName] || [];
-          for (const idx of indexes) {
-            store.createIndex(idx.name, idx.keyPath, { unique: idx.unique });
-          }
+        const store = db.createObjectStore(storeName, config);
+        const indexes = INDEXES[storeName] || [];
+        for (const idx of indexes) {
+          store.createIndex(idx.name, idx.keyPath, { unique: idx.unique });
         }
       }
     };

@@ -8,7 +8,7 @@ const LeagueDB = {
   },
 
   async getActive() {
-    const leagues = await getByIndex('leagues', 'byActive', true);
+    const leagues = await getByIndex('leagues', 'byActive', '1');
     return leagues.length > 0 ? leagues[0] : null;
   },
 
@@ -21,7 +21,7 @@ const LeagueDB = {
       description: data.description || '',
       rounds: data.mode === 'liga' ? (data.rounds || 1) : null,
       bracketSize: data.mode === 'eliminacion' ? (data.bracketSize || 4) : null,
-      isActive: false,
+      isActive: '0',
       createdAt: new Date().toISOString(),
     };
     return addItem('leagues', league);
@@ -43,19 +43,19 @@ const LeagueDB = {
       const index = store.index('byActive');
 
       return new Promise((resolve, reject) => {
-        const request = index.openCursor(IDBKeyRange.only(true));
+        const request = index.openCursor(IDBKeyRange.only('1'));
         request.onsuccess = (event) => {
           const cursor = event.target.result;
           if (cursor) {
             const league = cursor.value;
-            league.isActive = false;
+            league.isActive = '0';
             cursor.update(league);
           }
         };
         tx.oncomplete = () => {
           getById('leagues', id).then(league => {
             if (!league) { reject(new Error('Liga no encontrada')); return; }
-            league.isActive = true;
+            league.isActive = '1';
             putItem('leagues', league).then(() => {
               localStorage.setItem('podium-active-league', id);
               resolve();

@@ -23,7 +23,7 @@ async function restoreActiveLeague() {
   if (savedId) {
     const league = await LeagueDB.getById(Number(savedId));
     if (league) {
-      league.isActive = true;
+      league.isActive = '1';
     }
   }
 }
