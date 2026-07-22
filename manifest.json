@@ -1,0 +1,37 @@
+{
+  "name": "Podium — Gestor de Ligas eSports",
+  "short_name": "Podium",
+  "description": "Gestiona ligas, torneos y estadísticas de eSports (Valorant, Fighting Games, LoL)",
+  "start_url": "/podium/index.html",
+  "display": "standalone",
+  "background_color": "#0f1923",
+  "theme_color": "#ff4655",
+  "orientation": "any",
+  "categories": ["games", "sports", "utilities"],
+  "icons": [
+    {
+      "src": "assets/icons/podium.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Ligas",
+      "short_name": "Ligas",
+      "url": "/podium/index.html#leagues"
+    },
+    {
+      "name": "Partidos",
+      "short_name": "Partidos",
+      "url": "/podium/index.html#matches"
+    },
+    {
+      "name": "Estadísticas",
+      "short_name": "Stats",
+      "url": "/podium/index.html#stats"
+    }
+  ]
+}
