@@ -16,8 +16,7 @@ async function renderMatchDetail(main, params) {
   const awayPlayers = away ? await PlayerDB.getByTeam(away.id) : [];
   const date = new Date(match.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
-  const homeEvents = events.filter(e => e.teamId === match.homeTeamId);
-  const awayEvents = events.filter(e => e.teamId === match.awayTeamId);
+  const autoScore = sport.id !== 'valorant';
 
   function renderEvents() {
     const homeCol = main.querySelector('#ev-home');
@@ -41,10 +40,12 @@ async function renderMatchDetail(main, params) {
     renderEventList(he, homeCol);
     renderEventList(ae, awayCol);
 
-    const homeScoreEl = main.querySelector('#score-home');
-    const awayScoreEl = main.querySelector('#score-away');
-    if (homeScoreEl) homeScoreEl.textContent = he.length;
-    if (awayScoreEl) awayScoreEl.textContent = ae.length;
+    if (autoScore) {
+      const homeScoreEl = main.querySelector('#score-home');
+      const awayScoreEl = main.querySelector('#score-away');
+      if (homeScoreEl) homeScoreEl.textContent = he.length;
+      if (awayScoreEl) awayScoreEl.textContent = ae.length;
+    }
   }
 
   main.innerHTML = `
@@ -57,7 +58,10 @@ async function renderMatchDetail(main, params) {
           <div style="font-weight:600">${home?.name || '???'}</div>
         </div>
         <div style="font-size:3rem;font-weight:800;font-family:var(--font-mono);min-width:100px">
-          ${match.status === 'finished' ? `${match.homeScore} - ${match.awayScore}` : '<span style="font-size:1.5rem;color:var(--text-muted)">VS</span>'}
+          ${match.status === 'finished'
+            ? `${sport.terms.scoreLabel ? sport.terms.scoreLabel + ' ' : ''}${match.homeScore} - ${match.awayScore}`
+            : '<span style="font-size:1.5rem;color:var(--text-muted)">VS</span>'
+          }
         </div>
         <div style="text-align:center">
           <div class="team-badge" style="width:60px;height:60px;font-size:1.2rem;margin:0 auto 0.25rem;background:${away?.primaryColor || '#333'}">${away?.name?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '?'}</div>
@@ -69,14 +73,29 @@ async function renderMatchDetail(main, params) {
 
     ${match.status !== 'finished' ? `
     <div id="event-section">
+
+      ${!autoScore ? `
+      <div style="display:flex;gap:1rem;justify-content:center;align-items:center;margin-bottom:1.5rem">
+        <div style="text-align:center">
+          <label style="display:block;font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.25rem">${home?.name || 'Local'}</label>
+          <input type="number" id="score-input-home" value="${match.homeScore}" min="0" style="width:60px;text-align:center;font-size:1.5rem;font-weight:800;font-family:var(--font-mono);padding:0.25rem;border:1px solid var(--border-color);border-radius:var(--radius);background:var(--bg-card);color:var(--text-primary)">
+        </div>
+        <span style="font-size:1.5rem;font-weight:800;color:var(--text-secondary)">-</span>
+        <div style="text-align:center">
+          <label style="display:block;font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.25rem">${away?.name || 'Visitante'}</label>
+          <input type="number" id="score-input-away" value="${match.awayScore}" min="0" style="width:60px;text-align:center;font-size:1.5rem;font-weight:800;font-family:var(--font-mono);padding:0.25rem;border:1px solid var(--border-color);border-radius:var(--radius);background:var(--bg-card);color:var(--text-primary)">
+        </div>
+      </div>
+      ` : ''}
+
       <podium-event-form id="event-form"></podium-event-form>
       <div class="event-columns">
         <div class="event-column">
-          <h4>${home?.name || 'Local'} <span id="score-home" style="color:var(--accent)">${homeEvents.length}</span></h4>
+          <h4>${home?.name || 'Local'} ${autoScore ? `<span id="score-home" style="color:var(--accent)">${homeEvents.length}</span>` : `<span style="color:var(--text-muted);font-size:0.8rem">${sport.terms.eventNamePlural}</span>`}</h4>
           <div id="ev-home"></div>
         </div>
         <div class="event-column">
-          <h4>${away?.name || 'Visitante'} <span id="score-away" style="color:var(--accent)">${awayEvents.length}</span></h4>
+          <h4>${away?.name || 'Visitante'} ${autoScore ? `<span id="score-away" style="color:var(--accent)">${awayEvents.length}</span>` : `<span style="color:var(--text-muted);font-size:0.8rem">${sport.terms.eventNamePlural}</span>`}</h4>
           <div id="ev-away"></div>
         </div>
       </div>
@@ -108,9 +127,11 @@ async function renderMatchDetail(main, params) {
         events.length = 0;
         events.push(...updatedEvents);
 
-        match.homeScore = events.filter(e => e.teamId === match.homeTeamId).length;
-        match.awayScore = events.filter(e => e.teamId === match.awayTeamId).length;
-        await MatchDB.update(match.id, { homeScore: match.homeScore, awayScore: match.awayScore });
+        if (autoScore) {
+          match.homeScore = events.filter(e => e.teamId === match.homeTeamId).length;
+          match.awayScore = events.filter(e => e.teamId === match.awayTeamId).length;
+          await MatchDB.update(match.id, { homeScore: match.homeScore, awayScore: match.awayScore });
+        }
 
         renderEvents();
         showToast(`${sport.terms.eventName} registrada`, 'success');
@@ -119,6 +140,14 @@ async function renderMatchDetail(main, params) {
     }
 
     main.querySelector('#btn-finish').onclick = async () => {
+      if (!autoScore) {
+        const homeScore = Number(main.querySelector('#score-input-home').value) || 0;
+        const awayScore = Number(main.querySelector('#score-input-away').value) || 0;
+        match.homeScore = homeScore;
+        match.awayScore = awayScore;
+        await MatchDB.update(match.id, { homeScore, awayScore });
+      }
+
       if (league.mode === 'eliminacion' && match.homeScore === match.awayScore) {
         showToast('En eliminación directa debes declarar un ganador (marcador no puede quedar empatado)', 'error');
         return;
