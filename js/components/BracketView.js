@@ -11,7 +11,7 @@ class BracketView extends HTMLElement {
 
   async render() {
     if (!this._data || this._data.length === 0) {
-      this.shadowRoot.innerHTML = `<p style="color:var(--text-muted)">No hay bracket generado</p>`;
+      this.shadowRoot.innerHTML = `<p style="color:var(--text-muted);padding:1rem">No hay bracket generado</p>`;
       return;
     }
 
@@ -19,14 +19,23 @@ class BracketView extends HTMLElement {
     const rounds = [...new Set(matches.map(m => m.round))].sort();
     const roundNames = { 1: 'Octavos', 2: 'Cuartos', 3: 'Semifinal', 4: 'Final' };
 
+    const teamCache = {};
+    async function getTeamName(id) {
+      if (!id) return 'Por definir';
+      if (!teamCache[id]) {
+        const team = await TeamDB.getById(id);
+        teamCache[id] = team ? team.name : '???';
+      }
+      return teamCache[id];
+    }
+
     let html = `<div class="bracket">`;
     for (const round of rounds) {
-      html += `<div class="bracket-round">
-        <div class="bracket-round-title">${roundNames[round] || `Ronda ${round}`}</div>`;
+      html += `<div class="bracket-round"><div class="bracket-round-title">${roundNames[round] || `Ronda ${round}`}</div>`;
       const roundMatches = matches.filter(m => m.round === round);
       for (const m of roundMatches) {
-        const homeName = m.homeTeamId ? (await TeamDB.getById(m.homeTeamId))?.name || '???' : 'Por definir';
-        const awayName = m.awayTeamId ? (await TeamDB.getById(m.awayTeamId))?.name || '???' : 'Por definir';
+        const homeName = await getTeamName(m.homeTeamId);
+        const awayName = await getTeamName(m.awayTeamId);
         const finished = m.status === 'finished';
         html += `<div class="bracket-match" data-id="${m.id}">
           <div class="bm-teams">

@@ -86,28 +86,17 @@ const MatchDB = {
     const n = teams.length;
     const shuffled = [...teams].sort(() => Math.random() - 0.5);
     const rounds = Math.log2(n);
-    const totalMatches = n - 1;
-    const matches = [];
     let roundSize = n / 2;
+    const matchRows = [];
 
     for (let r = 0; r < rounds; r++) {
+      const row = [];
       for (let i = 0; i < roundSize; i++) {
-        const matchIndex = matches.length;
+        const home = r === 0 ? shuffled[i * 2].id : null;
+        const away = r === 0 ? shuffled[i * 2 + 1].id : null;
         const date = new Date();
-        date.setDate(date.getDate() + matchIndex + 1);
-
-        const home = r === 0
-          ? shuffled[i * 2].id
-          : null;
-        const away = r === 0
-          ? shuffled[i * 2 + 1].id
-          : null;
-
-        const nextMatchIndex = roundSize + Math.floor(i / 2) + (r > 0 ? totalMatches - (n / Math.pow(2, r)) : 0);
-        const totalCurrentRound = n / Math.pow(2, r + 1);
-        const nextSlot = i % 2 === 0 ? 'home' : 'away';
-
-        matches.push({
+        date.setDate(date.getDate() + matchRows.flat().length + 1);
+        const id = await addItem('matches', {
           leagueId,
           homeTeamId: home,
           awayTeamId: away,
@@ -117,28 +106,27 @@ const MatchDB = {
           awayScore: 0,
           round: r + 1,
           nextMatchId: null,
-          nextSlot: null,
+          nextSlot: i % 2 === 0 ? 'home' : 'away',
           winnerId: null,
           createdAt: new Date().toISOString(),
         });
+        row.push(id);
       }
+      matchRows.push(row);
       roundSize /= 2;
     }
 
-    for (let i = 0; i < matches.length; i++) {
-      const match = matches[i];
-      const totalCurrentRound = n / Math.pow(2, match.round);
-      const roundOffset = matches.filter(m => m.round === match.round).indexOf(match);
-      if (match.round < rounds) {
-        const nextRoundStart = matches.findIndex(m => m.round === match.round + 1);
-        match.nextMatchId = null;
-        match.nextSlot = roundOffset % 2 === 0 ? 'home' : 'away';
-        if (nextRoundStart >= 0) {
-          match.nextMatchId = matches[nextRoundStart + Math.floor(roundOffset / 2)]?.id || null;
-        }
+    for (let r = 0; r < matchRows.length - 1; r++) {
+      for (let i = 0; i < matchRows[r].length; i++) {
+        const matchId = matchRows[r][i];
+        const nextRowIndex = Math.floor(i / 2);
+        const nextMatchId = matchRows[r + 1][nextRowIndex];
+        const match = await getById('matches', matchId);
+        match.nextMatchId = nextMatchId;
+        await putItem('matches', match);
       }
     }
 
-    return matches;
+    return matchRows.flat();
   },
 };

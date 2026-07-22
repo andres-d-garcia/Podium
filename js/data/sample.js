@@ -82,9 +82,8 @@ async function loadSampleData() {
       }
     } else if (leagueData.mode === 'eliminacion') {
       const teams = await TeamDB.getByLeague(leagueId);
-      const bracket = await MatchDB.generateBracket(leagueId, teams);
-      for (const match of bracket) {
-        await addItem('matches', match);
+      if (teams.length === (leagueData.bracketSize || 4)) {
+        await MatchDB.generateBracket(leagueId, teams);
       }
     }
   }
