@@ -40,7 +40,7 @@ const SPORTS = {
       scorerLabel: 'Finalizador',
       scoreLabel: 'Rondas',
       scoreAbbr: { for: 'RF', against: 'RC' },
-      eventTypes: ['Jab', 'Golpe Fuerte', 'Combo', 'Ultimate'],
+      eventTypes: ['KO'],
       matchAction: 'Golpear',
       winnerLabel: 'Campeón',
       roundLabel: 'Round',

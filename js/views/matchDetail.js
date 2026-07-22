@@ -17,6 +17,7 @@ async function renderMatchDetail(main, params) {
   const date = new Date(match.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
   const autoScore = sport.id !== 'valorant' && sport.id !== 'fighting';
+  const showEvents = sport.id !== 'fighting';
 
   function renderEvents() {
     const homeCol = main.querySelector('#ev-home');
@@ -88,6 +89,7 @@ async function renderMatchDetail(main, params) {
       </div>
       ` : ''}
 
+      ${showEvents ? `
       <podium-event-form id="event-form"></podium-event-form>
       <div class="event-columns">
         <div class="event-column">
@@ -99,6 +101,8 @@ async function renderMatchDetail(main, params) {
           <div id="ev-away"></div>
         </div>
       </div>
+      ` : ''}
+
       <div style="display:flex;gap:0.75rem;justify-content:center;margin-top:1rem">
         <button class="btn btn-primary" id="btn-finish">Finalizar partido</button>
       </div>
@@ -111,32 +115,34 @@ async function renderMatchDetail(main, params) {
   `;
 
   if (match.status !== 'finished') {
-    const eventForm = main.querySelector('#event-form');
-    if (eventForm) {
-      eventForm.data = { match, homeTeam: home, awayTeam: away, homePlayers, awayPlayers, sport };
-      eventForm.onAdd = async (data) => {
-        if (!data.playerId || !data.teamId) return;
-        await EventDB.create({
-          matchId: match.id,
-          playerId: data.playerId,
-          teamId: data.teamId,
-          type: data.type || null,
-          minute: data.minute || null,
-        });
-        const updatedEvents = await EventDB.getByMatch(match.id);
-        events.length = 0;
-        events.push(...updatedEvents);
+    if (showEvents) {
+      const eventForm = main.querySelector('#event-form');
+      if (eventForm) {
+        eventForm.data = { match, homeTeam: home, awayTeam: away, homePlayers, awayPlayers, sport };
+        eventForm.onAdd = async (data) => {
+          if (!data.playerId || !data.teamId) return;
+          await EventDB.create({
+            matchId: match.id,
+            playerId: data.playerId,
+            teamId: data.teamId,
+            type: data.type || null,
+            minute: data.minute || null,
+          });
+          const updatedEvents = await EventDB.getByMatch(match.id);
+          events.length = 0;
+          events.push(...updatedEvents);
 
-        if (autoScore) {
-          match.homeScore = events.filter(e => e.teamId === match.homeTeamId).length;
-          match.awayScore = events.filter(e => e.teamId === match.awayTeamId).length;
-          await MatchDB.update(match.id, { homeScore: match.homeScore, awayScore: match.awayScore });
-        }
+          if (autoScore) {
+            match.homeScore = events.filter(e => e.teamId === match.homeTeamId).length;
+            match.awayScore = events.filter(e => e.teamId === match.awayTeamId).length;
+            await MatchDB.update(match.id, { homeScore: match.homeScore, awayScore: match.awayScore });
+          }
 
+          renderEvents();
+          showToast(`${sport.terms.eventName} registrada`, 'success');
+        };
         renderEvents();
-        showToast(`${sport.terms.eventName} registrada`, 'success');
-      };
-      renderEvents();
+      }
     }
 
     main.querySelector('#btn-finish').onclick = async () => {
