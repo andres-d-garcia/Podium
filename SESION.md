@@ -41,8 +41,8 @@
 - [x] LeagueCard integrado: navega a stats con setActive, muestra teamCount y modo detallado
 - [x] Revisar fixture: generateFixture corregido (round), bracket single/double OK
 - [x] Verificar deshacer partido en bracket: lógica correcta, validación de cadena
-- [ ] `README.md`
-- [ ] Probar la aplicación completa
+- [x] `README.md`
+- [ ] Probar la aplicación completa — queda pendiente (prueba manual en navegador)
 
 ## GitHub
 - Repositorio: https://github.com/andres-d-garcia/Podium
