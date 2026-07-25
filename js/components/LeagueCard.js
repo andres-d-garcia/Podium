@@ -17,7 +17,9 @@ class LeagueCard extends HTMLElement {
     if (!this._data) return;
     const l = this._data;
     const sport = getSport(l.sport);
-    const modeText = l.mode === 'liga' ? `Liga (${l.rounds === 2 ? 'Ida y vuelta' : 'Una vuelta'})` : 'Eliminación directa';
+    const modeText = l.mode === 'liga'
+      ? `Liga (${l.rounds === 2 ? 'Ida y vuelta' : 'Una vuelta'})`
+      : `Eliminación directa${l.doubleElimination ? ' (doble)' : ''} (${l.bracketSize})`;
 
     this.shadowRoot.innerHTML = `
       <link rel="stylesheet" href="css/main.css">
@@ -29,17 +31,18 @@ class LeagueCard extends HTMLElement {
             <p style="color:var(--text-secondary);font-size:0.85rem;margin:0">
               ${sport.name} · ${l.season}
             </p>
+            <p style="color:var(--text-muted);font-size:0.8rem;margin:0.25rem 0 0">
+              ${l.teamCount || 0} equipos · ${modeText}
+            </p>
           </div>
           ${l.isActive === '1' ? '<span style="background:var(--success);color:#000;padding:0.15rem 0.5rem;border-radius:4px;font-size:0.7rem;font-weight:700">ACTIVA</span>' : ''}
-        </div>
-        <div style="margin-top:0.75rem;font-size:0.8rem;color:var(--text-muted)">
-          ${modeText}
         </div>
       </div>
     `;
 
-    this.shadowRoot.querySelector('.card').onclick = () => {
-      router.navigate(`leagues`);
+    this.shadowRoot.querySelector('.card').onclick = async () => {
+      await LeagueDB.setActive(l.id);
+      router.navigate('stats');
     };
   }
 }
