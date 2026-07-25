@@ -1,5 +1,8 @@
 document.addEventListener('DOMContentLoaded', async () => {
   try {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js');
+    }
     await openDB();
     document.querySelector('podium-footer').setAttribute('db-status', 'connected');
     initRouter();
