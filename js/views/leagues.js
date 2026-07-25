@@ -19,41 +19,35 @@ async function renderLeagues(main) {
 
   const list = main.querySelector('#league-list');
   for (const league of leagues) {
-    const sport = getSport(league.sport);
     const teams = await TeamDB.getByLeague(league.id);
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:start">
-        <div>
-          <h3 style="margin:0 0 0.25rem">${sport.icon} ${league.name}</h3>
-          <p style="color:var(--text-secondary);font-size:0.85rem;margin:0">
-            ${sport.name} · ${league.season}
-          </p>
-          <p style="color:var(--text-muted);font-size:0.8rem;margin:0.25rem 0 0">
-            ${teams.length} equipos · ${league.mode === 'liga' ? `Liga (${league.rounds === 2 ? 'Ida y vuelta' : 'Una vuelta'})` : `Eliminación directa${league.doubleElimination ? ' (doble)' : ''} (${league.bracketSize})`}
-          </p>
-        </div>
-        ${league.isActive === '1' ? '<span style="background:var(--success);color:#000;padding:0.15rem 0.5rem;border-radius:4px;font-size:0.7rem;font-weight:700">ACTIVA</span>' : ''}
-      </div>
-      <div style="margin-top:0.75rem;display:flex;gap:0.5rem;flex-wrap:wrap">
-        ${league.isActive !== '1' ? `<button class="btn btn-sm btn-primary" data-activate="${league.id}">Activar</button>` : ''}
-        ${canGenerate(league, teams.length) ? `<button class="btn btn-sm btn-success" data-generate="${league.id}" style="background:var(--success);color:#000">${league.mode === 'liga' ? 'Generar fixture' : 'Generar bracket'}</button>` : ''}
-        <button class="btn btn-sm btn-secondary" data-edit="${league.id}">Editar</button>
-        <button class="btn btn-sm btn-secondary" data-export="${league.id}">Exportar</button>
-        <button class="btn btn-sm btn-danger" data-delete="${league.id}">Eliminar</button>
-      </div>
+
+    const container = document.createElement('div');
+
+    const leagueCard = document.createElement('podium-league-card');
+    leagueCard.data = { ...league, teamCount: teams.length };
+    container.appendChild(leagueCard);
+
+    const actions = document.createElement('div');
+    actions.style.cssText = 'margin-top:0.75rem;display:flex;gap:0.5rem;flex-wrap:wrap';
+    actions.innerHTML = `
+      ${league.isActive !== '1' ? `<button class="btn btn-sm btn-primary" data-activate="${league.id}">Activar</button>` : ''}
+      ${canGenerate(league, teams.length) ? `<button class="btn btn-sm btn-success" data-generate="${league.id}" style="background:var(--success);color:#000">${league.mode === 'liga' ? 'Generar fixture' : 'Generar bracket'}</button>` : ''}
+      <button class="btn btn-sm btn-secondary" data-edit="${league.id}">Editar</button>
+      <button class="btn btn-sm btn-secondary" data-export="${league.id}">Exportar</button>
+      <button class="btn btn-sm btn-danger" data-delete="${league.id}">Eliminar</button>
     `;
-    card.querySelector('[data-activate]')?.addEventListener('click', async () => {
+    actions.querySelector('[data-activate]')?.addEventListener('click', async () => {
       await LeagueDB.setActive(league.id);
       showToast(`"${league.name}" activada`, 'success');
       renderLeagues(main);
     });
-    card.querySelector('[data-generate]')?.addEventListener('click', async () => generateMatches(league, main));
-    card.querySelector('[data-edit]').addEventListener('click', () => showLeagueForm(main, league));
-    card.querySelector('[data-export]').addEventListener('click', () => exportLeague(league.id));
-    card.querySelector('[data-delete]').addEventListener('click', () => deleteLeague(main, league));
-    list.appendChild(card);
+    actions.querySelector('[data-generate]')?.addEventListener('click', async () => generateMatches(league, main));
+    actions.querySelector('[data-edit]').addEventListener('click', () => showLeagueForm(main, league));
+    actions.querySelector('[data-export]').addEventListener('click', () => exportLeague(league.id));
+    actions.querySelector('[data-delete]').addEventListener('click', () => deleteLeague(main, league));
+    container.appendChild(actions);
+
+    list.appendChild(container);
   }
 
   main.querySelector('#btn-create-league').onclick = () => showLeagueForm(main);
