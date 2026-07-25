@@ -38,7 +38,7 @@ class LeagueCard extends HTMLElement {
       </div>
     `;
 
-    this.shadowRoot.querySelector('.card').onclick = async () => {
+    this.shadowRoot.querySelector('.league-card-info').onclick = async () => {
       await LeagueDB.setActive(l.id);
       router.navigate('stats');
     };
