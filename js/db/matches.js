@@ -73,7 +73,7 @@ const MatchDB = {
             status: 'scheduled',
             homeScore: 0,
             awayScore: 0,
-            round: 1,
+            round: r + 1,
             nextMatchId: null,
             nextSlot: null,
             winnerId: null,

@@ -38,9 +38,8 @@
 - [x] GitHub Pages configurado
 
 ### Pendiente
-- [ ] Probar que LeagueCard funcione correctamente (onclick navega a ligas, no al detalle)
+- [x] LeagueCard integrado: navega a stats con setActive, muestra teamCount y modo detallado
 - [ ] Revisar que el fixture se genere correctamente
-- [ ] Agregar botón "Generar fixture/bracket" en la vista ligas
 - [ ] Verificar operación de deshacer partido en bracket
 - [ ] `README.md`
 - [ ] Probar la aplicación completa
