@@ -39,8 +39,8 @@
 
 ### Pendiente
 - [x] LeagueCard integrado: navega a stats con setActive, muestra teamCount y modo detallado
-- [ ] Revisar que el fixture se genere correctamente
-- [ ] Verificar operación de deshacer partido en bracket
+- [x] Revisar fixture: generateFixture corregido (round), bracket single/double OK
+- [x] Verificar deshacer partido en bracket: lógica correcta, validación de cadena
 - [ ] `README.md`
 - [ ] Probar la aplicación completa
 
