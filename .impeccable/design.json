@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-25T19:21:00.000Z",
+  "title": "Design System: Podium",
+  "extensions": {
+    "colorMeta": {
+      "primary": { "role": "primary", "displayName": "Razer Red", "canonical": "#ff4655", "tonalRamp": ["#4a0a10", "#7a1822", "#a62632", "#d6353f", "#ff4655", "#ff6a76", "#ff949d", "#ffc4c9"] },
+      "accent-fighting": { "role": "secondary", "displayName": "Fighting Gold", "canonical": "#fbbf24", "tonalRamp": ["#3d2d04", "#6b4f0a", "#9a7210", "#c99619", "#fbbf24", "#fccd50", "#fdde81", "#feefb8"] },
+      "accent-lol": { "role": "secondary", "displayName": "LoL Champagne", "canonical": "#c8aa6e", "tonalRamp": ["#2d2412", "#4f3f1e", "#735b2c", "#9a783b", "#c8aa6e", "#d4bc8b", "#e0cfaa", "#eee4cc"] },
+      "bg-primary": { "role": "neutral", "displayName": "Deep Navy", "canonical": "#0f1923", "tonalRamp": ["#030609", "#070c12", "#0b121c", "#0f1923", "#13202f", "#17273b", "#1b2e47", "#1f3553"] },
+      "bg-secondary": { "role": "neutral", "displayName": "Slate Navy", "canonical": "#1a2332", "tonalRamp": ["#080b11", "#0e141c", "#141d29", "#1a2332", "#202c3f", "#26344c", "#2c3d59", "#324566"] },
+      "bg-card": { "role": "neutral", "displayName": "Card Navy", "canonical": "#1e2a3a", "tonalRamp": ["#090d14", "#10171f", "#17222d", "#1e2a3a", "#253548", "#2c3f55", "#334963", "#3a5371"] },
+      "text-primary": { "role": "neutral", "displayName": "Warm Ivory", "canonical": "#ece8e1", "tonalRamp": ["#3a352b", "#5c5547", "#7e7563", "#a0977f", "#c0b8a6", "#d6cfc3", "#e6e1d8", "#f0ede7"] },
+      "success": { "role": "neutral", "displayName": "Match Green", "canonical": "#4ade80", "tonalRamp": ["#0b2e1a", "#14532d", "#1e7a41", "#28a256", "#4ade80", "#6fe79a", "#97eeb4", "#bff5ce"] },
+      "error": { "role": "neutral", "displayName": "Error Red", "canonical": "#ef4444", "tonalRamp": ["#3b0a0a", "#5f1010", "#841a1a", "#a92626", "#ef4444", "#f26a6a", "#f69292", "#f9bcbc"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Section titles and page headers only." },
+      "body": { "displayName": "Body", "purpose": "General text, descriptions, metadata." },
+      "label": { "displayName": "Label", "purpose": "Form labels, table headers, status badges." },
+      "mono": { "displayName": "Monospace", "purpose": "Scores, statistics, numerical data." }
+    },
+    "shadows": [
+      { "name": "card-hover", "value": "0 4px 16px rgba(0,0,0,0.3)", "purpose": "Hover state on cards and containers." },
+      { "name": "toast", "value": "0 4px 12px rgba(0,0,0,0.4)", "purpose": "Floating notifications." }
+    ],
+    "motion": [
+      { "name": "ease-default", "value": "0.2s ease", "purpose": "Default transition for all state changes." },
+      { "name": "fadeIn", "value": "fadeIn 0.2s ease", "purpose": "Modal overlay entrance." },
+      { "name": "slideUp", "value": "slideUp 0.2s ease", "purpose": "Modal content entrance." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "480px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Main call-to-action. Uses the active sport accent color.",
+      "html": "<button class=\"ds-btn-primary\">Crear liga</button>",
+      "css": ".ds-btn-primary { background: #ff4655; color: #fff; padding: 0.5rem 1rem; border: none; border-radius: 8px; font-family: 'Segoe UI', system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 0.5rem; } .ds-btn-primary:hover { filter: brightness(1.15); }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Secondary action. Subtle background with border.",
+      "html": "<button class=\"ds-btn-secondary\">Cancelar</button>",
+      "css": ".ds-btn-secondary { background: #243044; color: #ece8e1; padding: 0.5rem 1rem; border: 1px solid #2a3648; border-radius: 8px; font-family: 'Segoe UI', system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 0.5rem; } .ds-btn-secondary:hover { background: #2a3648; }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Standard content container with subtle border and hover glow.",
+      "html": "<div class=\"ds-card\"><h3 style=\"margin:0 0 0.25rem;font-size:0.95rem;font-weight:600\">Título de card</h3><p style=\"color:#8b978f;font-size:0.85rem;margin:0\">Contenido de ejemplo</p></div>",
+      "css": ".ds-card { background: #1e2a3a; border: 1px solid #2a3648; border-radius: 12px; padding: 1.25rem; transition: all 0.2s ease; } .ds-card:hover { border-color: #ff4655; box-shadow: 0 4px 16px rgba(0,0,0,0.3); }"
+    },
+    {
+      "name": "Input Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Text input with dark background and accent focus.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Nombre del equipo\">",
+      "css": ".ds-input { background: #243044; border: 1px solid #2a3648; border-radius: 8px; color: #ece8e1; padding: 0.5rem 0.75rem; font-family: 'Segoe UI', system-ui, sans-serif; font-size: 0.875rem; width: 100%; transition: border-color 0.2s ease; outline: none; } .ds-input:focus { border-color: #ff4655; }"
+    },
+    {
+      "name": "Navigation Link",
+      "kind": "nav",
+      "refersTo": "nav-link",
+      "description": "Navbar link with subtle hover and active state.",
+      "html": "<a class=\"ds-nav-link active\" href=\"#\">Dashboard</a>",
+      "css": ".ds-nav-link { color: #8b978f; padding: 0.4rem 0.75rem; border-radius: 8px; font-size: 0.85rem; font-weight: 500; transition: all 0.2s ease; text-decoration: none; font-family: 'Segoe UI', system-ui, sans-serif; } .ds-nav-link:hover { color: #ece8e1; background: rgba(255,255,255,0.06); } .ds-nav-link.active { color: #ff4655; background: rgba(255,255,255,0.06); }"
+    },
+    {
+      "name": "Status Badge",
+      "kind": "chip",
+      "refersTo": "match-status",
+      "description": "Match status indicator (scheduled / finished).",
+      "html": "<span class=\"ds-badge\">FINALIZADO</span>",
+      "css": ".ds-badge { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 4px; background: #14532d; border: 1px solid #4ade80; color: #4ade80; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; font-family: 'Segoe UI', system-ui, sans-serif; letter-spacing: 0.3px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The eSports Command Center",
+    "overview": "Podium es una interfaz oscura, de alto contraste, diseñada para la gestión rápida de torneos presenciales. La estética se inspira en los paneles de control de torneos profesionales: sobrio, funcional, con acentos de color que cobran vida según el deporte activo. El diseño prioriza la escaneabilidad y la densidad de información sin sacrificar jerarquía visual. No hay decoración gratuita — cada elemento tiene un propósito operativo.",
+    "keyCharacteristics": [
+      "Fondo oscuro profundo (#0f1923) que reduce la fatiga visual en sesiones largas",
+      "Acentos de color dinámicos que cambian según el eSport activo (rojo Valorant, dorado Fighting, champagne LoL)",
+      "Cards con bordes sutiles y hover con glow en el acento",
+      "Tipografía limpia sin serifa, con monoespaciada para datos numéricos",
+      "Espaciado generoso en desktop que se comprime en mobile sin perder legibilidad"
+    ],
+    "rules": [
+      { "name": "The Mono For Numbers Rule", "body": "Los marcadores, puntuaciones, estadísticas y datos numéricos usan la fuente monoespaciada (Cascadia Code / Fira Code) para alineación precisa y legibilidad.", "section": "typography" },
+      { "name": "The Flat-By-Default Rule", "body": "Las superficies son planas en reposo. La profundidad se comunica mediante cambios tonales del fondo, no con sombras. Las sombras aparecen solo como respuesta a estados (hover, focus).", "section": "elevation" }
+    ],
+    "dos": [
+      "Usar el acento de color con moderación — el rojo, dorado o champagne son el punto focal, no el fondo",
+      "Mantener la jerarquía tipográfica: display para títulos grandes, labels uppercase para metadata",
+      "Usar la fuente monoespaciada para todos los valores numéricos en marcadores y estadísticas",
+      "Aprovechar las cards como contenedor principal de contenido",
+      "Mantener el espaciado generoso en desktop y comprimir gradualmente hacia mobile"
+    ],
+    "donts": [
+      "Usar sombras agresivas — el sistema es plano por defecto",
+      "Mezclar acentos de diferentes deportes en la misma vista",
+      "Usar fondos blancos o claros — el sistema es oscuro",
+      "Agregar decoración sin función — cada elemento debe tener propósito operativo",
+      "Usar la fuente monoespaciada para texto no numérico"
+    ]
+  }
+}
