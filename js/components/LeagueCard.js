@@ -24,19 +24,17 @@ class LeagueCard extends HTMLElement {
     this.shadowRoot.innerHTML = `
       <link rel="stylesheet" href="css/main.css">
       <link rel="stylesheet" href="css/components.css">
-      <div class="card" style="cursor:pointer">
-        <div style="display:flex;justify-content:space-between;align-items:start">
-          <div>
-            <h3 style="margin:0 0 0.25rem">${sport.icon} ${l.name}</h3>
-            <p style="color:var(--text-secondary);font-size:0.85rem;margin:0">
-              ${sport.name} · ${l.season}
-            </p>
-            <p style="color:var(--text-muted);font-size:0.8rem;margin:0.25rem 0 0">
-              ${l.teamCount || 0} equipos · ${modeText}
-            </p>
-          </div>
-          ${l.isActive === '1' ? '<span style="background:var(--success);color:#000;padding:0.15rem 0.5rem;border-radius:4px;font-size:0.7rem;font-weight:700">ACTIVA</span>' : ''}
+      <div style="display:flex;justify-content:space-between;align-items:start;cursor:pointer" class="league-card-info">
+        <div>
+          <h3 style="margin:0 0 0.25rem">${sport.icon} ${l.name}</h3>
+          <p style="color:var(--text-secondary);font-size:0.85rem;margin:0">
+            ${sport.name} · ${l.season}
+          </p>
+          <p style="color:var(--text-muted);font-size:0.8rem;margin:0.25rem 0 0">
+            ${l.teamCount || 0} equipos · ${modeText}
+          </p>
         </div>
+        ${l.isActive === '1' ? '<span style="background:var(--success);color:#000;padding:0.15rem 0.5rem;border-radius:4px;font-size:0.7rem;font-weight:700">ACTIVA</span>' : ''}
       </div>
     `;
 

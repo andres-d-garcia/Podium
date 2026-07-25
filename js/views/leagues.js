@@ -21,11 +21,12 @@ async function renderLeagues(main) {
   for (const league of leagues) {
     const teams = await TeamDB.getByLeague(league.id);
 
-    const container = document.createElement('div');
+    const card = document.createElement('div');
+    card.className = 'card';
 
     const leagueCard = document.createElement('podium-league-card');
     leagueCard.data = { ...league, teamCount: teams.length };
-    container.appendChild(leagueCard);
+    card.appendChild(leagueCard);
 
     const actions = document.createElement('div');
     actions.style.cssText = 'margin-top:0.75rem;display:flex;gap:0.5rem;flex-wrap:wrap';
@@ -45,9 +46,9 @@ async function renderLeagues(main) {
     actions.querySelector('[data-edit]').addEventListener('click', () => showLeagueForm(main, league));
     actions.querySelector('[data-export]').addEventListener('click', () => exportLeague(league.id));
     actions.querySelector('[data-delete]').addEventListener('click', () => deleteLeague(main, league));
-    container.appendChild(actions);
+    card.appendChild(actions);
 
-    list.appendChild(container);
+    list.appendChild(card);
   }
 
   main.querySelector('#btn-create-league').onclick = () => showLeagueForm(main);
