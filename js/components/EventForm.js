@@ -29,15 +29,15 @@ class EventForm extends HTMLElement {
           <div class="form-group">
             <label>Equipo</label>
             <select id="ev-team">
-              <option value="${homeTeam.id}">${homeTeam.name}</option>
-              <option value="${awayTeam.id}">${awayTeam.name}</option>
+              <option value="${homeTeam.id}">${escapeHtml(homeTeam.name)}</option>
+              <option value="${awayTeam.id}">${escapeHtml(awayTeam.name)}</option>
             </select>
           </div>
           <div class="form-group">
             <label>Jugador</label>
             <select id="ev-player">
-              ${homePlayers.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
-              ${awayPlayers.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+              ${homePlayers.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('')}
+              ${awayPlayers.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('')}
             </select>
           </div>
           <div class="form-group">
@@ -62,7 +62,7 @@ class EventForm extends HTMLElement {
       const teamId = Number(teamSelect.value);
       const players = teamId === homeTeam.id ? homePlayers : awayPlayers;
       playerSelect.innerHTML = players.map(p =>
-        `<option value="${p.id}">${p.name}</option>`
+        `<option value="${p.id}">${escapeHtml(p.name)}</option>`
       ).join('');
     };
 

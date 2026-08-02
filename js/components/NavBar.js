@@ -43,7 +43,7 @@ class NavBar extends HTMLElement {
           <a href="#stats" onclick="event.preventDefault(); router.navigate('stats')">Estadísticas</a>
         </div>
         <div class="navbar-spacer"></div>
-        ${name ? `<div class="navbar-league"><span class="league-dot"></span> ${icon} ${name} — ${sport}</div>` : ''}
+        ${name ? `<div class="navbar-league"><span class="league-dot"></span> ${escapeHtml(icon)} ${escapeHtml(name)} — ${escapeHtml(sport)}</div>` : ''}
       </nav>
     `;
   }

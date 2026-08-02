@@ -1,4 +1,7 @@
+let playersSearchTimeout = null;
+
 async function renderPlayers(main) {
+  clearTimeout(playersSearchTimeout);
   const league = await getActiveLeague();
   if (!league) {
     main.innerHTML = `<div class="empty-state"><h3>Sin liga activa</h3></div>`;
@@ -10,8 +13,6 @@ async function renderPlayers(main) {
   const teamMap = Object.fromEntries(teams.map(t => [t.id, t]));
   const allPlayers = await PlayerDB.getByLeague(league.id);
   let filtered = [...allPlayers];
-
-  let searchTimeout;
   const positions = [...new Set(allPlayers.map(p => p.position).filter(Boolean))];
 
   function renderList() {
@@ -25,13 +26,13 @@ async function renderPlayers(main) {
       const team = teamMap[p.teamId];
       const card = document.createElement('div');
       card.className = 'card player-card';
-      const initials = p.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+      const initials = escapeHtml(p.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase());
       card.innerHTML = `
         <div style="text-align:center">
           <div class="player-avatar" style="margin:0 auto">${initials}</div>
-          <h4 style="margin:0.5rem 0 0.25rem">${p.name}</h4>
+          <h4 style="margin:0.5rem 0 0.25rem">${escapeHtml(p.name)}</h4>
           <p style="color:var(--text-muted);font-size:0.8rem;margin:0">
-            ${team ? team.name : ''} ${p.position ? `· ${p.position}` : ''} ${p.number ? `· #${p.number}` : ''}
+            ${escapeHtml(team?.name) || ''} ${p.position ? `· ${escapeHtml(p.position)}` : ''} ${p.number ? `· #${p.number}` : ''}
           </p>
           <p style="color:var(--text-secondary);font-size:0.8rem;margin:0.25rem 0 0">
             ${p.stats?.anotaciones || 0} anotaciones · ${p.stats?.pj || 0} PJ
@@ -58,7 +59,7 @@ async function renderPlayers(main) {
 
   main.innerHTML = `
     <div class="section-header">
-      <div class="section-title">👤 Jugadores — ${league.name}</div>
+      <div class="section-title">👤 Jugadores — ${escapeHtml(league.name)}</div>
       <button class="btn btn-primary" id="btn-create-player">+ Nuevo jugador</button>
     </div>
     <div class="filters-bar">
@@ -70,14 +71,14 @@ async function renderPlayers(main) {
         <label>Equipo</label>
         <select id="pf-team">
           <option value="">Todos</option>
-          ${teams.map(t => `<option value="${t.id}">${t.name}</option>`).join('')}
+          ${teams.map(t => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('')}
         </select>
       </div>
       <div class="form-group">
         <label>Posición</label>
         <select id="pf-position">
           <option value="">Todas</option>
-          ${positions.map(p => `<option value="${p}">${p}</option>`).join('')}
+          ${positions.map(p => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('')}
         </select>
       </div>
       <button class="btn btn-secondary" id="pf-clear">Limpiar</button>
@@ -87,8 +88,8 @@ async function renderPlayers(main) {
   `;
 
   main.querySelector('#pf-search').addEventListener('input', (e) => {
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(applyFilters, 350);
+    clearTimeout(playersSearchTimeout);
+    playersSearchTimeout = setTimeout(applyFilters, 350);
   });
   main.querySelector('#pf-team').onchange = applyFilters;
   main.querySelector('#pf-position').onchange = applyFilters;
@@ -114,12 +115,12 @@ function showPlayerForm(main, league, teams, player) {
       <form id="player-form">
         <div class="form-group">
           <label>Nombre</label>
-          <input type="text" id="pf-name" required value="${editMode ? player.name : ''}">
+          <input type="text" id="pf-name" required value="${escapeHtml(editMode ? player.name : '')}">
         </div>
         <div class="form-row">
           <div class="form-group">
             <label>Posición</label>
-            <input type="text" id="pf-position-field" value="${editMode ? player.position : ''}" placeholder="Ej: Duelista, Top, All-Rounder">
+            <input type="text" id="pf-position-field" value="${escapeHtml(editMode ? player.position : '')}" placeholder="Ej: Duelista, Top, All-Rounder">
           </div>
           <div class="form-group">
             <label>Número</label>
@@ -129,7 +130,7 @@ function showPlayerForm(main, league, teams, player) {
         <div class="form-group">
           <label>Equipo</label>
           <select id="pf-team-select" required>
-            ${teams.map(t => `<option value="${t.id}" ${editMode && player.teamId === t.id ? 'selected' : ''}>${t.name}</option>`).join('')}
+            ${teams.map(t => `<option value="${t.id}" ${editMode && player.teamId === t.id ? 'selected' : ''}>${escapeHtml(t.name)}</option>`).join('')}
           </select>
         </div>
         <div class="modal-actions">

@@ -20,12 +20,12 @@ class PlayerCard extends HTMLElement {
       <div class="card player-card">
         <div style="text-align:center">
           <div class="player-avatar" style="margin:0 auto">
-            ${p.photo ? `<img src="${p.photo}" alt="${p.name}">` : initials}
+            ${p.photo ? `<img src="${escapeHtml(p.photo)}" alt="${escapeHtml(p.name)}">` : initials}
           </div>
-          <h4 style="margin:0 0 0.25rem;font-size:0.95rem">${p.name}</h4>
+          <h4 style="margin:0 0 0.25rem;font-size:0.95rem">${escapeHtml(p.name)}</h4>
           <p style="color:var(--text-muted);font-size:0.75rem;margin:0">
-            ${p.position ? `${p.position} · ` : ''} #${p.number || '-'}
-            ${p.stats ? `· ${p.stats.anotaciones || 0} ${getTerm('valorant', 'eventNamePlural')}` : ''}
+            ${p.position ? `${escapeHtml(p.position)} · ` : ''} #${p.number || '-'}
+            ${p.stats ? `· ${p.stats.anotaciones || 0} ${escapeHtml(getTerm('valorant', 'eventNamePlural'))}` : ''}
           </p>
         </div>
       </div>

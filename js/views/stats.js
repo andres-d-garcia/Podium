@@ -12,7 +12,7 @@ async function renderStats(main) {
   const finished = allMatches.filter(m => m.status === 'finished');
 
   main.innerHTML = `
-    <div class="section-title">📊 Estadísticas — ${league.name}</div>
+    <div class="section-title">📊 Estadísticas — ${escapeHtml(league.name)}</div>
 
     <div id="standings-section" style="margin-bottom:2rem"></div>
 

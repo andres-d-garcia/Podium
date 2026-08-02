@@ -36,8 +36,8 @@ class RankingTable extends HTMLElement {
           ${top.map((p, i) => `
             <tr style="cursor:pointer" data-id="${p.id}">
               <td>${i + 1}</td>
-              <td><strong>${p.name}</strong></td>
-              <td style="color:var(--text-secondary)">${p.teamName || '-'}</td>
+              <td><strong>${escapeHtml(p.name)}</strong></td>
+              <td style="color:var(--text-secondary)">${escapeHtml(p.teamName) || '-'}</td>
               <td>${p.stats.anotaciones || 0}</td>
               <td>${p.stats.pj || 0}</td>
               <td>${(p.stats.promedio || 0).toFixed(1)}</td>

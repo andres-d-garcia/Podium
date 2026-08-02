@@ -14,7 +14,9 @@ async function renderMatchDetail(main, params) {
   const events = await EventDB.getByMatch(match.id);
   const homePlayers = home ? await PlayerDB.getByTeam(home.id) : [];
   const awayPlayers = away ? await PlayerDB.getByTeam(away.id) : [];
-  const date = new Date(match.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  let homeEvents = events.filter(e => e.teamId === match.homeTeamId);
+  let awayEvents = events.filter(e => e.teamId === match.awayTeamId);
+  const date = new Date(match.date).toLocaleString('es-ES', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
   const autoScore = sport.id !== 'valorant' && sport.id !== 'fighting';
   const showEvents = sport.id !== 'fighting';
@@ -24,15 +26,17 @@ async function renderMatchDetail(main, params) {
     const awayCol = main.querySelector('#ev-away');
     if (!homeCol || !awayCol) return;
 
-    const he = events.filter(e => e.teamId === match.homeTeamId);
-    const ae = events.filter(e => e.teamId === match.awayTeamId);
+    homeEvents = events.filter(e => e.teamId === match.homeTeamId);
+    awayEvents = events.filter(e => e.teamId === match.awayTeamId);
+    const he = homeEvents;
+    const ae = awayEvents;
 
     const renderEventList = (evts, container) => {
       container.innerHTML = evts.map(ev => {
         const player = [...homePlayers, ...awayPlayers].find(p => p.id === ev.playerId);
         return `<div class="event-item">
-          <span>${player?.name || '???'}</span>
-          <span class="event-badge">${ev.type || sport.terms.eventName}</span>
+          <span>${escapeHtml(player?.name) || '???'}</span>
+          <span class="event-badge">${escapeHtml(ev.type) || escapeHtml(sport.terms.eventName)}</span>
           <span class="event-minute">${ev.minute ? `min ${ev.minute}` : ''}</span>
         </div>`;
       }).join('') || '<p style="color:var(--text-muted);font-size:0.85rem">Sin eventos</p>';
@@ -55,8 +59,8 @@ async function renderMatchDetail(main, params) {
     <div style="text-align:center;margin-bottom:2rem">
       <div style="display:flex;align-items:center;justify-content:center;gap:2rem;margin-bottom:0.5rem">
         <div style="text-align:center">
-          <div class="team-badge" style="width:60px;height:60px;font-size:1.2rem;margin:0 auto 0.25rem;background:${home?.primaryColor || '#333'}">${home?.name?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '?'}</div>
-          <div style="font-weight:600">${home?.name || '???'}</div>
+          <div class="team-badge" style="width:60px;height:60px;font-size:1.2rem;margin:0 auto 0.25rem;background:${safeColor(home?.primaryColor)}">${escapeHtml(home?.name)?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '?'}</div>
+          <div style="font-weight:600">${escapeHtml(home?.name) || '???'}</div>
         </div>
         <div style="font-size:3rem;font-weight:800;font-family:var(--font-mono);min-width:100px">
           ${match.status === 'finished'
@@ -65,8 +69,8 @@ async function renderMatchDetail(main, params) {
           }
         </div>
         <div style="text-align:center">
-          <div class="team-badge" style="width:60px;height:60px;font-size:1.2rem;margin:0 auto 0.25rem;background:${away?.primaryColor || '#333'}">${away?.name?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '?'}</div>
-          <div style="font-weight:600">${away?.name || '???'}</div>
+          <div class="team-badge" style="width:60px;height:60px;font-size:1.2rem;margin:0 auto 0.25rem;background:${safeColor(away?.primaryColor)}">${escapeHtml(away?.name)?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '?'}</div>
+          <div style="font-weight:600">${escapeHtml(away?.name) || '???'}</div>
         </div>
       </div>
       <p style="color:var(--text-secondary);font-size:0.9rem">${date} · <span class="match-status ${match.status}">${match.status === 'finished' ? 'Finalizado' : match.status === 'scheduled' ? 'Programado' : 'Pendiente'}</span>${match.bracket && match.bracket !== 'winners' ? ` · ${match.bracket === 'losers' ? 'Losers Bracket' : 'Gran Final'} R${match.round}` : ''}</p>
@@ -78,12 +82,12 @@ async function renderMatchDetail(main, params) {
       ${!autoScore ? `
       <div style="display:flex;gap:1rem;justify-content:center;align-items:center;margin-bottom:1.5rem">
         <div style="text-align:center">
-          <label style="display:block;font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.25rem">${home?.name || 'Local'}</label>
+          <label style="display:block;font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.25rem">${escapeHtml(home?.name) || 'Local'}</label>
           <input type="number" id="score-input-home" value="${match.homeScore}" min="0" style="width:60px;text-align:center;font-size:1.5rem;font-weight:800;font-family:var(--font-mono);padding:0.25rem;border:1px solid var(--border-color);border-radius:var(--radius);background:var(--bg-card);color:var(--text-primary)">
         </div>
         <span style="font-size:1.5rem;font-weight:800;color:var(--text-secondary)">-</span>
         <div style="text-align:center">
-          <label style="display:block;font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.25rem">${away?.name || 'Visitante'}</label>
+          <label style="display:block;font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.25rem">${escapeHtml(away?.name) || 'Visitante'}</label>
           <input type="number" id="score-input-away" value="${match.awayScore}" min="0" style="width:60px;text-align:center;font-size:1.5rem;font-weight:800;font-family:var(--font-mono);padding:0.25rem;border:1px solid var(--border-color);border-radius:var(--radius);background:var(--bg-card);color:var(--text-primary)">
         </div>
       </div>
@@ -93,11 +97,11 @@ async function renderMatchDetail(main, params) {
       <podium-event-form id="event-form"></podium-event-form>
       <div class="event-columns">
         <div class="event-column">
-          <h4>${home?.name || 'Local'} ${autoScore ? `<span id="score-home" style="color:var(--accent)">${homeEvents.length}</span>` : `<span style="color:var(--text-muted);font-size:0.8rem">${sport.terms.eventNamePlural}</span>`}</h4>
+          <h4>${escapeHtml(home?.name) || 'Local'} ${autoScore ? `<span id="score-home" style="color:var(--accent)">${homeEvents.length}</span>` : `<span style="color:var(--text-muted);font-size:0.8rem">${escapeHtml(sport.terms.eventNamePlural)}</span>`}</h4>
           <div id="ev-home"></div>
         </div>
         <div class="event-column">
-          <h4>${away?.name || 'Visitante'} ${autoScore ? `<span id="score-away" style="color:var(--accent)">${awayEvents.length}</span>` : `<span style="color:var(--text-muted);font-size:0.8rem">${sport.terms.eventNamePlural}</span>`}</h4>
+          <h4>${escapeHtml(away?.name) || 'Visitante'} ${autoScore ? `<span id="score-away" style="color:var(--accent)">${awayEvents.length}</span>` : `<span style="color:var(--text-muted);font-size:0.8rem">${escapeHtml(sport.terms.eventNamePlural)}</span>`}</h4>
           <div id="ev-away"></div>
         </div>
       </div>
@@ -151,7 +155,6 @@ async function renderMatchDetail(main, params) {
         const awayScore = Number(main.querySelector('#score-input-away').value) || 0;
         match.homeScore = homeScore;
         match.awayScore = awayScore;
-        await MatchDB.update(match.id, { homeScore, awayScore });
       }
 
       if (league.mode === 'eliminacion' && match.homeScore === match.awayScore) {
@@ -159,6 +162,9 @@ async function renderMatchDetail(main, params) {
         return;
       }
       try {
+        if (!autoScore) {
+          await MatchDB.update(match.id, { homeScore: match.homeScore, awayScore: match.awayScore });
+        }
         await finalizarPartido(match.id);
         showToast('Partido finalizado', 'success');
         renderMatchDetail(main, params);

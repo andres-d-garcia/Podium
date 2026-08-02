@@ -10,7 +10,7 @@ async function renderMatches(main) {
   const teams = await TeamDB.getByLeague(league.id);
   const allMatches = await MatchDB.getByLeague(league.id);
   let filtered = [...allMatches];
-  const rounds = [...new Set(allMatches.map(m => m.round))].sort();
+  const rounds = [...new Set(allMatches.map(m => m.round))].sort((a, b) => a - b);
 
   function applyFilters() {
     const status = main.querySelector('#mf-status').value;
@@ -44,12 +44,12 @@ async function renderMatches(main) {
       card.style.cssText = 'padding:0.75rem;margin-bottom:0.5rem';
       card.innerHTML = `
         <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem">
-          <span style="flex:1;text-align:right;font-weight:600">${home?.name || '???'}</span>
+          <span style="flex:1;text-align:right;font-weight:600">${escapeHtml(home?.name) || '???'}</span>
           ${m.status === 'finished'
             ? `<span style="font-size:1.25rem;font-weight:800;font-family:var(--font-mono);min-width:60px;text-align:center">${sport.terms.scoreLabel ? sport.terms.scoreLabel + ': ' : ''}${m.homeScore} - ${m.awayScore}</span>`
             : `<span style="color:var(--text-muted);font-weight:600;min-width:60px;text-align:center">VS</span>`
           }
-          <span style="flex:1;font-weight:600">${away?.name || '???'}</span>
+          <span style="flex:1;font-weight:600">${escapeHtml(away?.name) || '???'}</span>
         </div>
         <div style="display:flex;justify-content:space-between;margin-top:0.5rem;font-size:0.8rem;color:var(--text-secondary)">
           <span>${date} ${league.mode === 'eliminacion' ? `· ${m.bracket === 'winners' ? 'WB' : m.bracket === 'losers' ? 'LB' : m.bracket === 'grand_final' ? 'GF' : ''} R${m.round}` : ''}</span>
@@ -65,7 +65,7 @@ async function renderMatches(main) {
 
   main.innerHTML = `
     <div class="section-header">
-      <div class="section-title">🎮 Partidos — ${league.name}</div>
+      <div class="section-title">🎮 Partidos — ${escapeHtml(league.name)}</div>
       ${league.mode === 'liga' && teams.length >= 2 ? `<button class="btn btn-primary" id="btn-create-match">+ Programar partido</button>` : ''}
     </div>
     <div class="filters-bar">
@@ -82,7 +82,7 @@ async function renderMatches(main) {
         <label>Equipo</label>
         <select id="mf-team">
           <option value="">Todos</option>
-          ${teams.map(t => `<option value="${t.id}">${t.name}</option>`).join('')}
+          ${teams.map(t => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('')}
         </select>
       </div>
       ${league.mode === 'eliminacion' ? `
@@ -128,14 +128,14 @@ function showMatchForm(main, league, teams) {
           <label>Equipo local</label>
           <select id="mf-home" required>
             <option value="">Seleccionar...</option>
-            ${teams.map(t => `<option value="${t.id}">${t.name}</option>`).join('')}
+            ${teams.map(t => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('')}
           </select>
         </div>
         <div class="form-group">
           <label>Equipo visitante</label>
           <select id="mf-away" required>
             <option value="">Seleccionar...</option>
-            ${teams.map(t => `<option value="${t.id}">${t.name}</option>`).join('')}
+            ${teams.map(t => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('')}
           </select>
         </div>
         <div class="form-group">
@@ -161,11 +161,22 @@ function showMatchForm(main, league, teams) {
       return;
     }
 
+    const dateValue = modal.querySelector('#mf-date').value;
+    if (!dateValue) {
+      showToast('Debes indicar una fecha y hora', 'error');
+      return;
+    }
+    const date = new Date(dateValue);
+    if (isNaN(date.getTime())) {
+      showToast('Fecha inválida', 'error');
+      return;
+    }
+
     await MatchDB.create({
       leagueId: league.id,
       homeTeamId: home,
       awayTeamId: away,
-      date: new Date(modal.querySelector('#mf-date').value).toISOString(),
+      date: date.toISOString(),
     });
 
     modal.style.display = 'none';

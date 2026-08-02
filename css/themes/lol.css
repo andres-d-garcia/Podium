@@ -1,4 +1,6 @@
 [data-sport="lol"] {
+  --accent: #c8aa6e;
+  --accent-muted: rgba(200, 170, 110, 0.15);
   --sport-accent: #c8aa6e;
   --sport-secondary: #0a1428;
   --sport-gradient: linear-gradient(135deg, #c8aa6e 0%, #0a1428 100%);

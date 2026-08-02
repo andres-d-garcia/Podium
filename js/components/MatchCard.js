@@ -29,18 +29,18 @@ class MatchCard extends HTMLElement {
       <div class="card match-card">
         <div class="match-teams">
           <div class="match-team">
-            <div class="team-badge" style="background:${home ? home.primaryColor : '#333'}">
+            <div class="team-badge" style="background:${safeColor(home?.primaryColor)}">
               ${homeInitials}
             </div>
-            <span style="font-weight:600;font-size:0.9rem">${home ? home.name : '???'}</span>
+            <span style="font-weight:600;font-size:0.9rem">${escapeHtml(home?.name) || '???'}</span>
           </div>
           ${m.status === 'finished'
             ? `<div class="match-score">${scoreLabel ? `${scoreLabel}: ` : ''}${m.homeScore} - ${m.awayScore}</div>`
             : `<div class="match-vs">VS</div>`
           }
           <div class="match-team away">
-            <span style="font-weight:600;font-size:0.9rem">${away ? away.name : '???'}</span>
-            <div class="team-badge" style="background:${away ? away.primaryColor : '#333'}">
+            <span style="font-weight:600;font-size:0.9rem">${escapeHtml(away?.name) || '???'}</span>
+            <div class="team-badge" style="background:${safeColor(away?.primaryColor)}">
               ${awayInitials}
             </div>
           </div>

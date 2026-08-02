@@ -19,12 +19,12 @@ class TeamCard extends HTMLElement {
       <link rel="stylesheet" href="css/components.css">
       <div class="card team-card">
         <div style="text-align:center">
-          <div class="team-avatar" style="background:${t.primaryColor};margin:0 auto">
+          <div class="team-avatar" style="background:${safeColor(t.primaryColor)};margin:0 auto">
             ${initials}
           </div>
-          <h4 style="margin:0 0 0.25rem;font-size:0.95rem">${t.name}</h4>
+          <h4 style="margin:0 0 0.25rem;font-size:0.95rem">${escapeHtml(t.name)}</h4>
           <p style="color:var(--text-muted);font-size:0.75rem;margin:0">
-            ${t.city || ''} ${t.stats ? `· ${t.stats.pj} PJ · ${t.stats.pts} PTS` : ''}
+            ${escapeHtml(t.city) || ''} ${t.stats ? `· ${t.stats.pj} PJ · ${t.stats.pts} PTS` : ''}
           </p>
         </div>
       </div>

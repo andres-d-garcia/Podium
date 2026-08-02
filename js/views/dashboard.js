@@ -25,7 +25,7 @@ async function renderDashboard(main) {
     const home = await TeamDB.getById(nextMatch.homeTeamId);
     const away = await TeamDB.getById(nextMatch.awayTeamId);
     const date = new Date(nextMatch.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
-    nextHtml = `<p><strong>${home?.name || '???'}</strong> vs <strong>${away?.name || '???'}</strong> — ${date}</p>`;
+    nextHtml = `<p><strong>${escapeHtml(home?.name) || '???'}</strong> vs <strong>${escapeHtml(away?.name) || '???'}</strong> — ${date}</p>`;
   }
 
   let lastHtml = '<p style="color:var(--text-muted)">No hay partidos finalizados</p>';
@@ -33,7 +33,7 @@ async function renderDashboard(main) {
     const home = await TeamDB.getById(lastMatch.homeTeamId);
     const away = await TeamDB.getById(lastMatch.awayTeamId);
     const sl = sport.terms.scoreLabel;
-    lastHtml = `<p><strong>${home?.name || '???'}</strong> ${sl ? `${sl}: ` : ''}${lastMatch.homeScore} - ${lastMatch.awayScore} <strong>${away?.name || '???'}</strong></p>`;
+    lastHtml = `<p><strong>${escapeHtml(home?.name) || '???'}</strong> ${sl ? `${sl}: ` : ''}${lastMatch.homeScore} - ${lastMatch.awayScore} <strong>${escapeHtml(away?.name) || '???'}</strong></p>`;
   }
 
   let topHtml = '';
@@ -44,18 +44,18 @@ async function renderDashboard(main) {
       <table style="width:100%;font-size:0.85rem">
         <thead><tr><th>#</th><th>Equipo</th><th>PJ</th><th>PTS</th></tr></thead>
         <tbody>
-          ${top5.map((t, i) => `<tr><td>${i + 1}</td><td>${t.name}</td><td>${t.stats.pj}</td><td><strong>${t.stats.pts}</strong></td></tr>`).join('')}
+          ${top5.map((t, i) => `<tr><td>${i + 1}</td><td>${escapeHtml(t.name)}</td><td>${t.stats.pj}</td><td><strong>${t.stats.pts}</strong></td></tr>`).join('')}
         </tbody>
       </table>
       <button class="btn btn-secondary btn-sm" style="margin-top:0.75rem" onclick="router.navigate('stats')">Ver tabla completa</button>
     `;
   } else {
-    topHtml = `<p style="color:var(--text-muted)">Modalidad eliminación directa. <a href="#" onclick="router.navigate('stats')">Ver bracket completo</a></p>`;
+    topHtml = `<p style="color:var(--text-muted)">Modalidad eliminación directa. <a href="#" onclick="event.preventDefault(); router.navigate('stats')">Ver bracket completo</a></p>`;
   }
 
   main.innerHTML = `
     <div class="section-header">
-      <div class="section-title">${sport.icon} ${league.name} <span style="font-size:0.9rem;color:var(--text-secondary);font-weight:400">— ${sport.name} · ${league.season}</span></div>
+      <div class="section-title">${sport.icon} ${escapeHtml(league.name)} <span style="font-size:0.9rem;color:var(--text-secondary);font-weight:400">— ${sport.name} · ${escapeHtml(league.season)}</span></div>
     </div>
     <div class="dashboard-grid">
       <div class="card">

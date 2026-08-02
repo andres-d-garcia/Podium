@@ -24,7 +24,7 @@ class BracketView extends HTMLElement {
         const team = await TeamDB.getById(id);
         teamCache[id] = team ? team.name : '???';
       }
-      return teamCache[id];
+      return escapeHtml(teamCache[id]);
     }
 
     const wbMatches = matches.filter(m => !m.bracket || m.bracket === 'winners');

@@ -50,7 +50,7 @@ class StandingsTable extends HTMLElement {
           ${sorted.map((team, i) => `
             <tr style="cursor:pointer" data-id="${team.id}">
               <td class="${i < 3 ? `pos-${i + 1}` : ''}">${i + 1}</td>
-              <td><strong>${team.name}</strong></td>
+              <td><strong>${escapeHtml(team.name)}</strong></td>
               <td>${team.stats.pj}</td>
               <td>${team.stats.pg}</td>
               <td>${team.stats.pe}</td>

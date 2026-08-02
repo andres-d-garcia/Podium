@@ -18,17 +18,17 @@ async function renderPlayerDetail(main, params) {
     if (m) matches.push(m);
   }
 
-  const initials = player.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  const initials = escapeHtml(player.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase());
   const avg = player.stats.pj > 0 ? (player.stats.anotaciones / player.stats.pj).toFixed(1) : '0.0';
 
   main.innerHTML = `
     <a href="#" class="btn-back" onclick="event.preventDefault(); router.navigate('players')">← Volver a jugadores</a>
     <div class="detail-header">
-      <div class="detail-avatar" style="background:${team ? team.primaryColor : '#333'}">${initials}</div>
+      <div class="detail-avatar" style="background:${safeColor(team?.primaryColor)}">${initials}</div>
       <div class="detail-info">
-        <h1>${player.name}</h1>
+        <h1>${escapeHtml(player.name)}</h1>
         <div class="detail-meta">
-          ${team ? team.name : 'Sin equipo'} ${player.position ? `· ${player.position}` : ''} ${player.number ? `· #${player.number}` : ''}
+          ${escapeHtml(team?.name) || 'Sin equipo'} ${player.position ? `· ${escapeHtml(player.position)}` : ''} ${player.number ? `· #${player.number}` : ''}
         </div>
       </div>
     </div>
@@ -68,12 +68,12 @@ async function renderPlayerDetail(main, params) {
     div.style.cssText = 'padding:0.75rem;margin-bottom:0.5rem;cursor:pointer';
     div.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <span>vs <strong>${opponent?.name || '???'}</strong> <span style="color:var(--text-muted);font-size:0.85rem">${date}</span></span>
+        <span>vs <strong>${escapeHtml(opponent?.name) || '???'}</strong> <span style="color:var(--text-muted);font-size:0.85rem">${date}</span></span>
         <span><strong>${sport.terms.scoreLabel ? sport.terms.scoreLabel + ': ' : ''}${m.homeScore} - ${m.awayScore}</strong></span>
         <span style="color:${color};font-weight:700">${result}</span>
       </div>
       <div style="font-size:0.8rem;color:var(--accent);margin-top:0.25rem">
-        ${playerEvents.length} ${sport.terms.eventNamePlural.toLowerCase()} · ${playerEvents.map(e => `${e.type || sport.terms.eventName}${e.minute ? ` (min ${e.minute})` : ''}`).join(', ')}
+        ${playerEvents.length} ${escapeHtml(sport.terms.eventNamePlural).toLowerCase()} · ${playerEvents.map(e => `${escapeHtml(e.type) || escapeHtml(sport.terms.eventName)}${e.minute ? ` (min ${e.minute})` : ''}`).join(', ')}
       </div>
     `;
     div.onclick = () => router.navigate(`match/${m.id}`);

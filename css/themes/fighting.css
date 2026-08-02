@@ -1,4 +1,6 @@
 [data-sport="fighting"] {
+  --accent: #fbbf24;
+  --accent-muted: rgba(251, 191, 36, 0.15);
   --sport-accent: #fbbf24;
   --sport-secondary: #7c2d12;
   --sport-gradient: linear-gradient(135deg, #fbbf24 0%, #dc2626 100%);

@@ -15,7 +15,7 @@ async function renderTeamDetail(main, params) {
   const matches = allMatches.filter(m => m.leagueId === activeLeague?.id);
   const finished = matches.filter(m => m.status === 'finished').sort((a, b) => new Date(b.date) - new Date(a.date));
   const upcoming = matches.filter(m => m.status === 'scheduled').sort((a, b) => new Date(a.date) - new Date(b.date));
-  const initials = team.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  const initials = escapeHtml(team.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase());
   const ptsData = [];
   let pts = 0;
 
@@ -31,10 +31,10 @@ async function renderTeamDetail(main, params) {
   main.innerHTML = `
     <a href="#" class="btn-back" onclick="event.preventDefault(); router.navigate('teams')">← Volver a equipos</a>
     <div class="detail-header">
-      <div class="detail-avatar" style="background:${team.primaryColor}">${initials}</div>
+      <div class="detail-avatar" style="background:${safeColor(team.primaryColor)}">${initials}</div>
       <div class="detail-info">
-        <h1>${team.name}</h1>
-        <div class="detail-meta">${team.city || 'Sin sede'} · ${players.length} jugadores</div>
+        <h1>${escapeHtml(team.name)}</h1>
+        <div class="detail-meta">${escapeHtml(team.city) || 'Sin sede'} · ${players.length} jugadores</div>
       </div>
     </div>
 
@@ -79,11 +79,11 @@ async function renderTeamDetail(main, params) {
     pCard.innerHTML = `
       <div style="display:flex;align-items:center;gap:0.75rem">
         <div class="player-avatar" style="width:40px;height:40px;margin:0;font-size:0.9rem">
-          ${p.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
+          ${escapeHtml(p.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase())}
         </div>
         <div>
-          <strong>${p.name}</strong>
-          <p style="color:var(--text-muted);font-size:0.8rem;margin:0">${p.position || ''} ${p.number ? `#${p.number}` : ''}</p>
+          <strong>${escapeHtml(p.name)}</strong>
+          <p style="color:var(--text-muted);font-size:0.8rem;margin:0">${escapeHtml(p.position) || ''} ${p.number ? `#${p.number}` : ''}</p>
         </div>
       </div>
     `;
@@ -96,7 +96,7 @@ async function renderTeamDetail(main, params) {
     for (const m of upcoming) {
       const opp = await TeamDB.getById(m.homeTeamId === team.id ? m.awayTeamId : m.homeTeamId);
       const date = new Date(m.date).toLocaleDateString('es-ES');
-      upDiv.innerHTML += `<p style="font-size:0.9rem;color:var(--text-secondary)">vs <strong>${opp?.name || '???'}</strong> — ${date}</p>`;
+      upDiv.innerHTML += `<p style="font-size:0.9rem;color:var(--text-secondary)">vs <strong>${escapeHtml(opp?.name) || '???'}</strong> — ${date}</p>`;
     }
   }
 
@@ -111,7 +111,7 @@ async function renderTeamDetail(main, params) {
       finDiv.innerHTML += `
         <div class="match-card card" style="cursor:pointer;margin-bottom:0.5rem;padding:0.75rem" data-match="${m.id}">
           <div style="display:flex;justify-content:space-between;align-items:center">
-            <span>vs <strong>${opp?.name || '???'}</strong></span>
+            <span>vs <strong>${escapeHtml(opp?.name) || '???'}</strong></span>
             <span><strong>${sport.terms.scoreLabel ? sport.terms.scoreLabel + ': ' : ''}${m.homeScore} - ${m.awayScore}</strong></span>
             <span style="color:${color};font-weight:700">${result}</span>
           </div>

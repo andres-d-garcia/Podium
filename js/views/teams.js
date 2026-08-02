@@ -14,7 +14,7 @@ async function renderTeams(main) {
 
   main.innerHTML = `
     <div class="section-header">
-      <div class="section-title">🎮 Equipos — ${league.name}</div>
+      <div class="section-title">🎮 Equipos — ${escapeHtml(league.name)}</div>
       <button class="btn btn-primary" id="btn-create-team">+ Nuevo equipo</button>
     </div>
     <div id="team-list" class="grid-list">
@@ -27,16 +27,16 @@ async function renderTeams(main) {
   for (const team of teams) {
     const card = document.createElement('div');
     card.className = 'card team-card';
-    const initials = team.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    const initials = escapeHtml(team.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase());
     const count = teamPlayers[team.id]?.length || 0;
     card.innerHTML = `
       <div style="text-align:center">
-        <div class="team-avatar" style="background:${team.primaryColor};margin:0 auto">${initials}</div>
-        <h4 style="margin:0.5rem 0 0.25rem">${team.name}</h4>
+        <div class="team-avatar" style="background:${safeColor(team.primaryColor)};margin:0 auto">${initials}</div>
+        <h4 style="margin:0.5rem 0 0.25rem">${escapeHtml(team.name)}</h4>
         <p style="color:var(--text-muted);font-size:0.8rem;margin:0">
-          ${team.city || 'Sin sede'} · ${count} jugadores
+          ${escapeHtml(team.city) || 'Sin sede'} · ${count} jugadores
         </p>
-        ${team.stats.pj > 0 ? `
+        ${team.stats?.pj > 0 ? `
           <p style="color:var(--text-secondary);font-size:0.8rem;margin:0.25rem 0">
             ${team.stats.pj} PJ · ${team.stats.pts} PTS
           </p>
@@ -47,7 +47,7 @@ async function renderTeams(main) {
         <button class="btn btn-sm btn-danger" data-delete="${team.id}">Eliminar</button>
       </div>
     `;
-    card.querySelector('.card')?.addEventListener('click', (e) => {
+    card.addEventListener('click', (e) => {
       if (!e.target.closest('button')) router.navigate(`team/${team.id}`);
     });
     card.querySelector('[data-edit]').addEventListener('click', () => showTeamForm(main, league, team));
@@ -69,7 +69,7 @@ function showTeamForm(main, league, team) {
       <form id="team-form">
         <div class="form-group">
           <label>Nombre</label>
-          <input type="text" id="tf-name" required value="${editMode ? team.name : ''}">
+          <input type="text" id="tf-name" required value="${escapeHtml(editMode ? team.name : '')}">
         </div>
         <div class="form-row">
           <div class="form-group">
@@ -83,7 +83,7 @@ function showTeamForm(main, league, team) {
         </div>
         <div class="form-group">
           <label>Ciudad / Sede</label>
-          <input type="text" id="tf-city" value="${editMode ? team.city : ''}">
+          <input type="text" id="tf-city" value="${escapeHtml(editMode ? team.city : '')}">
         </div>
         <div class="modal-actions">
           <button type="button" class="btn btn-secondary" id="tf-cancel">Cancelar</button>

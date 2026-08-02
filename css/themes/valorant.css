@@ -1,4 +1,6 @@
 [data-sport="valorant"] {
+  --accent: #ff4655;
+  --accent-muted: rgba(255, 70, 85, 0.15);
   --sport-accent: #ff4655;
   --sport-secondary: #0f1923;
   --sport-gradient: linear-gradient(135deg, #ff4655 0%, #0f1923 100%);

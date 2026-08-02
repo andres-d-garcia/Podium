@@ -71,7 +71,7 @@ function showLeagueForm(main, league) {
       <form id="league-form">
         <div class="form-group">
           <label>Nombre</label>
-          <input type="text" id="f-name" required value="${editMode ? league.name : ''}" ${editMode ? 'readonly' : ''}>
+          <input type="text" id="f-name" required value="${escapeHtml(editMode ? league.name : '')}" ${editMode ? 'readonly' : ''}>
         </div>
         <div class="form-row">
           <div class="form-group">
@@ -84,7 +84,7 @@ function showLeagueForm(main, league) {
           </div>
           <div class="form-group">
             <label>Temporada</label>
-            <input type="text" id="f-season" required value="${editMode ? league.season : ''}">
+            <input type="text" id="f-season" required value="${escapeHtml(editMode ? league.season : '')}">
           </div>
         </div>
         ${!editMode ? `
@@ -99,7 +99,7 @@ function showLeagueForm(main, league) {
         ` : ''}
         <div class="form-group">
           <label>Descripción (opcional)</label>
-          <textarea id="f-desc" rows="2">${editMode ? (league.description || '') : ''}</textarea>
+          <textarea id="f-desc" rows="2">${escapeHtml(editMode ? (league.description || '') : '')}</textarea>
         </div>
         <div class="modal-actions">
           <button type="button" class="btn btn-secondary" id="f-cancel">Cancelar</button>
@@ -232,17 +232,28 @@ function canGenerate(league, teamCount) {
 async function generateMatches(league, main) {
   const existing = await MatchDB.getByLeague(league.id);
   if (existing.length > 0) {
-    const ok = await confirmAction('Ya hay partidos generados. ¿Generar de nuevo? Se eliminarán todos los existentes.');
+    const ok = await confirmAction('Ya hay partidos generados. ¿Generar de nuevo? Se eliminarán todos los existentes y se revertirán las estadísticas de los finalizados.');
     if (!ok) return;
+    showLoading(true);
+    for (const m of existing) {
+      if (m.status === 'finished') {
+        try {
+          await revertMatchStats(m.id);
+        } catch (e) {
+          console.error('No se pudieron revertir stats del partido', m.id, e);
+        }
+      }
+    }
     for (const m of existing) {
       const events = await EventDB.getByMatch(m.id);
       for (const e of events) await EventDB.remove(e.id);
       await MatchDB.remove(m.id);
     }
+  } else {
+    showLoading(true);
   }
 
   const teams = await TeamDB.getByLeague(league.id);
-  showLoading(true);
 
   if (league.mode === 'liga') {
     const fixture = await MatchDB.generateFixture(league.id, teams, league.rounds || 1);

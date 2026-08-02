@@ -283,6 +283,89 @@ function undoMatch(match, matchStore, teamStore, playerStore, eventStore, nextMa
   }
 }
 
+async function revertMatchStats(matchId) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(['matches', 'teams', 'players', 'events'], 'readwrite');
+    const matchStore = tx.objectStore('matches');
+    const teamStore = tx.objectStore('teams');
+    const playerStore = tx.objectStore('players');
+    const eventStore = tx.objectStore('events');
+
+    const matchReq = matchStore.get(matchId);
+    matchReq.onsuccess = () => {
+      const match = matchReq.result;
+      if (!match || match.status !== 'finished') {
+        resolve();
+        return;
+      }
+
+      const homeScore = match.homeScore || 0;
+      const awayScore = match.awayScore || 0;
+      let homePts = 0, awayPts = 0;
+      if (homeScore > awayScore) { homePts = 3; awayPts = 0; }
+      else if (homeScore < awayScore) { homePts = 0; awayPts = 3; }
+      else { homePts = 1; awayPts = 1; }
+
+      const homeReq = teamStore.get(match.homeTeamId);
+      homeReq.onsuccess = () => {
+        const home = homeReq.result;
+        if (home && home.stats) {
+          home.stats.pj = Math.max(0, (home.stats.pj || 0) - 1);
+          home.stats.pg = Math.max(0, (home.stats.pg || 0) - (homePts === 3 ? 1 : 0));
+          home.stats.pe = Math.max(0, (home.stats.pe || 0) - (homePts === 1 ? 1 : 0));
+          home.stats.pp = Math.max(0, (home.stats.pp || 0) - (homePts === 0 ? 1 : 0));
+          home.stats.pf = Math.max(0, (home.stats.pf || 0) - homeScore);
+          home.stats.pc = Math.max(0, (home.stats.pc || 0) - awayScore);
+          home.stats.dif = (home.stats.pf || 0) - (home.stats.pc || 0);
+          home.stats.pts = Math.max(0, (home.stats.pts || 0) - homePts);
+          teamStore.put(home);
+        }
+      };
+
+      const awayReq = teamStore.get(match.awayTeamId);
+      awayReq.onsuccess = () => {
+        const away = awayReq.result;
+        if (away && away.stats) {
+          away.stats.pj = Math.max(0, (away.stats.pj || 0) - 1);
+          away.stats.pg = Math.max(0, (away.stats.pg || 0) - (awayPts === 3 ? 1 : 0));
+          away.stats.pe = Math.max(0, (away.stats.pe || 0) - (awayPts === 1 ? 1 : 0));
+          away.stats.pp = Math.max(0, (away.stats.pp || 0) - (awayPts === 0 ? 1 : 0));
+          away.stats.pf = Math.max(0, (away.stats.pf || 0) - awayScore);
+          away.stats.pc = Math.max(0, (away.stats.pc || 0) - homeScore);
+          away.stats.dif = (away.stats.pf || 0) - (away.stats.pc || 0);
+          away.stats.pts = Math.max(0, (away.stats.pts || 0) - awayPts);
+          teamStore.put(away);
+        }
+      };
+
+      const eventReq = eventStore.index('byMatch').getAll(matchId);
+      eventReq.onsuccess = () => {
+        const events = eventReq.result || [];
+        const counts = {};
+        for (const evt of events) {
+          counts[evt.playerId] = (counts[evt.playerId] || 0) + 1;
+        }
+        for (const [playerId, count] of Object.entries(counts)) {
+          const playerReq = playerStore.get(Number(playerId));
+          playerReq.onsuccess = () => {
+            const player = playerReq.result;
+            if (player && player.stats) {
+              player.stats.pj = Math.max(0, (player.stats.pj || 0) - 1);
+              player.stats.anotaciones = Math.max(0, (player.stats.anotaciones || 0) - count);
+              player.stats.promedio = player.stats.pj > 0 ? (player.stats.anotaciones || 0) / player.stats.pj : 0;
+              playerStore.put(player);
+            }
+          };
+        }
+      };
+    };
+
+    tx.oncomplete = () => resolve();
+    tx.onerror = (e) => reject(tx.error || e);
+  });
+}
+
 async function eliminarLigaEnCascada(leagueId) {
   const db = await openDB();
   return new Promise((resolve, reject) => {
@@ -331,28 +414,57 @@ async function eliminarLigaEnCascada(leagueId) {
 }
 
 async function importarLiga(data) {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(['leagues', 'teams', 'players', 'matches', 'events'], 'readwrite');
-    try {
-      const leagueId = tx.objectStore('leagues').add(data.league).result;
-      for (const team of (data.teams || [])) {
-        team.leagueId = leagueId;
-        tx.objectStore('teams').add(team);
-      }
-      for (const match of (data.matches || [])) {
-        match.leagueId = leagueId;
-        tx.objectStore('matches').add(match);
-      }
-      for (const event of (data.events || [])) {
-        tx.objectStore('events').add(event);
-      }
-      tx.oncomplete = () => resolve();
-      tx.onerror = (e) => reject(tx.error || e);
-    } catch (e) {
-      reject(e);
-    }
-  });
+  const idMaps = { teams: {}, players: {}, matches: {} };
+
+  const league = { ...data.league };
+  delete league.id;
+  league.isActive = '0';
+  const leagueId = await addItem('leagues', league);
+
+  for (const team of (data.teams || [])) {
+    const record = { ...team };
+    delete record.id;
+    record.leagueId = leagueId;
+    const newId = await addItem('teams', record);
+    idMaps.teams[team.id] = newId;
+  }
+
+  for (const player of (data.players || [])) {
+    const record = { ...player };
+    delete record.id;
+    if (record.teamId !== undefined) record.teamId = idMaps.teams[record.teamId];
+    const newId = await addItem('players', record);
+    idMaps.players[player.id] = newId;
+  }
+
+  for (const match of (data.matches || [])) {
+    const record = { ...match };
+    delete record.id;
+    record.leagueId = leagueId;
+    if (record.homeTeamId !== undefined) record.homeTeamId = idMaps.teams[record.homeTeamId] || null;
+    if (record.awayTeamId !== undefined) record.awayTeamId = idMaps.teams[record.awayTeamId] || null;
+    if (record.winnerId !== undefined) record.winnerId = idMaps.teams[record.winnerId] || null;
+    const newId = await addItem('matches', record);
+    idMaps.matches[match.id] = newId;
+  }
+
+  for (const match of (data.matches || [])) {
+    if (!match.nextMatchId && !match.loserMatchId) continue;
+    const record = await getById('matches', idMaps.matches[match.id]);
+    if (!record) continue;
+    if (match.nextMatchId) record.nextMatchId = idMaps.matches[match.nextMatchId] || null;
+    if (match.loserMatchId) record.loserMatchId = idMaps.matches[match.loserMatchId] || null;
+    await putItem('matches', record);
+  }
+
+  for (const event of (data.events || [])) {
+    const record = { ...event };
+    delete record.id;
+    if (record.matchId !== undefined) record.matchId = idMaps.matches[record.matchId];
+    if (record.playerId !== undefined) record.playerId = idMaps.players[record.playerId] || null;
+    if (record.teamId !== undefined) record.teamId = idMaps.teams[record.teamId] || null;
+    await addItem('events', record);
+  }
 }
 
 async function exportarLiga(leagueId) {
