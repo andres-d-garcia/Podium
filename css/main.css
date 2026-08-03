@@ -336,6 +336,7 @@ tr:hover td {
 
   .section-title {
     font-size: 1.25rem;
+    padding-top: 1rem;
   }
 
   .stats-chart-grid {
