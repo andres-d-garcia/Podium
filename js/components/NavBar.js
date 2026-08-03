@@ -1,3 +1,12 @@
+const NAV_ICONS = {
+  dashboard: '<i class="fa-solid fa-th-large"></i>',
+  leagues: '<i class="fa-solid fa-trophy"></i>',
+  teams: '<i class="fa-solid fa-shield-halved"></i>',
+  players: '<i class="fa-solid fa-user"></i>',
+  matches: '<i class="fa-solid fa-calendar-days"></i>',
+  stats: '<i class="fa-solid fa-chart-column"></i>',
+};
+
 class NavBar extends HTMLElement {
   constructor() {
     super();
@@ -14,15 +23,87 @@ class NavBar extends HTMLElement {
 
   connectedCallback() {
     this.render();
+    document.addEventListener('click', this._onDocClick);
+  }
+
+  disconnectedCallback() {
+    document.removeEventListener('click', this._onDocClick);
+  }
+
+  _onDocClick = (e) => {
+    if (this.shadowRoot && !this.shadowRoot.contains(e.target)) {
+      this._closeMenu();
+    }
+  };
+
+  _closeMenu() {
+    const menu = this.shadowRoot.querySelector('.navbar-fab-menu');
+    const fab = this.shadowRoot.querySelector('.navbar-fab');
+    if (menu) menu.classList.remove('open');
+    if (fab) fab.setAttribute('aria-expanded', 'false');
+  }
+
+  async _toggleMenu() {
+    const fab = this.shadowRoot.querySelector('.navbar-fab');
+    const menu = this.shadowRoot.querySelector('.navbar-fab-menu');
+    const opening = !menu.classList.contains('open');
+
+    if (opening) {
+      const league = typeof getActiveLeague === 'function' ? await getActiveLeague() : null;
+      menu.innerHTML = this._buildMenu(league).map(opt => `
+        <button data-create="${opt.type}">${opt.label}</button>
+      `).join('');
+    }
+
+    menu.classList.toggle('open', opening);
+    fab.setAttribute('aria-expanded', opening ? 'true' : 'false');
+    if (opening) {
+      menu.querySelectorAll('[data-create]').forEach(btn => {
+        btn.onclick = (ev) => {
+          ev.stopPropagation();
+          this._closeMenu();
+          openCreateForm(btn.dataset.create);
+        };
+      });
+    }
+  }
+
+  _buildMenu(league) {
+    if (!league) return [{ label: '+ Nueva liga', type: 'league' }];
+
+    const base = location.hash.replace('#', '').split('/')[0];
+    const opts = [];
+    if (base === 'teams' || base === 'team') opts.push({ label: '+ Nuevo equipo', type: 'team' });
+    if (base === 'players' || base === 'player') opts.push({ label: '+ Nuevo jugador', type: 'player' });
+    if (base === 'matches' || base === 'match') opts.push({ label: '+ Programar partido', type: 'match' });
+    if (opts.length === 0) {
+      opts.push(
+        { label: '+ Nueva liga', type: 'league' },
+        { label: '+ Nuevo equipo', type: 'team' },
+        { label: '+ Nuevo jugador', type: 'player' },
+        { label: '+ Programar partido', type: 'match' },
+      );
+    }
+    return opts;
   }
 
   render() {
     const name = this.getAttribute('league-name') || '';
     const sport = this.getAttribute('league-sport') || '';
     const icon = this.getAttribute('league-icon') || '';
+    const navLinks = [
+      ['dashboard', 'Dashboard'],
+      ['leagues', 'Ligas'],
+      ['teams', 'Equipos'],
+      ['players', 'Jugadores'],
+      ['matches', 'Partidos'],
+      ['stats', 'Stats'],
+    ];
+    const base = typeof router !== 'undefined' ? router.currentRoute?.pattern?.split('/')[0] : '';
 
     this.shadowRoot.innerHTML = `
       <link rel="stylesheet" href="css/components.css">
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
       <nav class="navbar">
         <a href="#dashboard" class="navbar-brand" onclick="event.preventDefault(); router.navigate('dashboard')" style="color:var(--text-primary)">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="-40 100 400 270" fill="currentColor" style="height:28px;width:auto">
@@ -35,17 +116,29 @@ class NavBar extends HTMLElement {
           PODIUM
         </a>
         <div class="navbar-links">
-          <a href="#dashboard" onclick="event.preventDefault(); router.navigate('dashboard')">Dashboard</a>
-          <a href="#leagues" onclick="event.preventDefault(); router.navigate('leagues')">Ligas</a>
-          <a href="#teams" onclick="event.preventDefault(); router.navigate('teams')">Equipos</a>
-          <a href="#players" onclick="event.preventDefault(); router.navigate('players')">Jugadores</a>
-          <a href="#matches" onclick="event.preventDefault(); router.navigate('matches')">Partidos</a>
-          <a href="#stats" onclick="event.preventDefault(); router.navigate('stats')">Estadísticas</a>
+          ${navLinks.map(([href, label]) => `
+            <a href="#${href}" onclick="event.preventDefault(); router.navigate('${href}')" class="${base === href ? 'active' : ''}">
+              <span class="nav-icon">${NAV_ICONS[href]}</span>
+              <span class="nav-label">${label}</span>
+            </a>
+          `).join('')}
         </div>
         <div class="navbar-spacer"></div>
         ${name ? `<div class="navbar-league"><span class="league-dot"></span> ${escapeHtml(icon)} ${escapeHtml(name)} — ${escapeHtml(sport)}</div>` : ''}
+
+        <div class="navbar-fab-wrap">
+          <button class="navbar-fab" aria-label="Crear" aria-expanded="false">
+            <i class="fa-solid fa-plus"></i>
+          </button>
+          <div class="navbar-fab-menu"></div>
+        </div>
       </nav>
     `;
+
+    this.shadowRoot.querySelector('.navbar-fab').onclick = (e) => {
+      e.stopPropagation();
+      this._toggleMenu();
+    };
   }
 }
 customElements.define('podium-navbar', NavBar);

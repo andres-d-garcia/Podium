@@ -21,7 +21,7 @@ class RankingTable extends HTMLElement {
     this.shadowRoot.innerHTML = `
       <link rel="stylesheet" href="css/main.css">
       <link rel="stylesheet" href="css/components.css">
-      <table>
+      <table class="ranking-table">
         <thead>
           <tr>
             <th>#</th>

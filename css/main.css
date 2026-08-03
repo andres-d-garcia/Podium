@@ -180,6 +180,13 @@ label {
   gap: 1rem;
 }
 
+.stats-chart-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
 .empty-state {
   text-align: center;
   padding: 3rem 1rem;
@@ -290,6 +297,11 @@ tr:hover td {
   #app {
     padding: 1rem;
     padding-top: 4.5rem;
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0));
+  }
+
+  podium-footer {
+    margin-bottom: calc(64px + env(safe-area-inset-bottom, 0));
   }
 
   .form-row {
@@ -303,12 +315,17 @@ tr:hover td {
   .section-title {
     font-size: 1.25rem;
   }
+
+  .stats-chart-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 480px) {
   #app {
     padding: 0.75rem;
     padding-top: 4rem;
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0));
   }
 
   .card {
@@ -317,5 +334,20 @@ tr:hover td {
 
   .modal-content {
     padding: 1.25rem;
+  }
+}
+
+@media (max-width: 360px) {
+  #app {
+    padding: 0.5rem;
+    padding-top: 3.75rem;
+  }
+
+  .section-title {
+    font-size: 1.1rem;
+  }
+
+  .card {
+    padding: 0.85rem;
   }
 }

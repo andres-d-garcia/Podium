@@ -57,20 +57,20 @@ async function renderMatchDetail(main, params) {
     <a href="#" class="btn-back" onclick="event.preventDefault(); router.navigate('matches')">← Volver a partidos</a>
 
     <div style="text-align:center;margin-bottom:2rem">
-      <div style="display:flex;align-items:center;justify-content:center;gap:2rem;margin-bottom:0.5rem">
-        <div style="text-align:center">
-          <div class="team-badge" style="width:60px;height:60px;font-size:1.2rem;margin:0 auto 0.25rem;background:${safeColor(home?.primaryColor)}">${escapeHtml(home?.name)?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '?'}</div>
-          <div style="font-weight:600">${escapeHtml(home?.name) || '???'}</div>
+      <div class="match-score-display">
+        <div class="msd-team">
+          <div class="team-badge" style="background:${safeColor(home?.primaryColor)}">${escapeHtml(home?.name)?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '?'}</div>
+          <div class="msd-name">${escapeHtml(home?.name) || '???'}</div>
         </div>
-        <div style="font-size:3rem;font-weight:800;font-family:var(--font-mono);min-width:100px">
+        <div class="msd-score">
           ${match.status === 'finished'
             ? `${sport.terms.scoreLabel ? sport.terms.scoreLabel + ' ' : ''}${match.homeScore} - ${match.awayScore}`
-            : '<span style="font-size:1.5rem;color:var(--text-muted)">VS</span>'
+            : '<span class="msd-vs">VS</span>'
           }
         </div>
-        <div style="text-align:center">
-          <div class="team-badge" style="width:60px;height:60px;font-size:1.2rem;margin:0 auto 0.25rem;background:${safeColor(away?.primaryColor)}">${escapeHtml(away?.name)?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '?'}</div>
-          <div style="font-weight:600">${escapeHtml(away?.name) || '???'}</div>
+        <div class="msd-team">
+          <div class="team-badge" style="background:${safeColor(away?.primaryColor)}">${escapeHtml(away?.name)?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '?'}</div>
+          <div class="msd-name">${escapeHtml(away?.name) || '???'}</div>
         </div>
       </div>
       <p style="color:var(--text-secondary);font-size:0.9rem">${date} · <span class="match-status ${match.status}">${match.status === 'finished' ? 'Finalizado' : match.status === 'scheduled' ? 'Programado' : 'Pendiente'}</span>${match.bracket && match.bracket !== 'winners' ? ` · ${match.bracket === 'losers' ? 'Losers Bracket' : 'Gran Final'} R${match.round}` : ''}</p>

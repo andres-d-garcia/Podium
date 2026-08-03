@@ -16,7 +16,7 @@ async function renderStats(main) {
 
     <div id="standings-section" style="margin-bottom:2rem"></div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem">
+    <div class="stats-chart-grid">
       <div class="card">
         <h4>🏅 Top anotadores</h4>
         <podium-ranking id="rank-anotadores"></podium-ranking>

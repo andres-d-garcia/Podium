@@ -45,7 +45,9 @@ class Router {
 
 function updateNavActive(hash) {
   const baseHash = hash.split('/')[0];
-  document.querySelectorAll('.navbar-links a').forEach(link => {
+  const nav = document.querySelector('podium-navbar');
+  const root = nav?.shadowRoot || document;
+  root.querySelectorAll('.navbar-links a').forEach(link => {
     const href = link.getAttribute('href').replace('#', '');
     link.classList.toggle('active', href === baseHash);
   });

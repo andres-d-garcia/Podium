@@ -82,3 +82,61 @@ function confirmAction(message) {
     dialog.show(message, resolve);
   });
 }
+
+function waitFor(predicate, timeout = 3000) {
+  return new Promise((resolve) => {
+    const start = Date.now();
+    const check = () => {
+      if (predicate()) return resolve(true);
+      if (Date.now() - start > timeout) return resolve(false);
+      requestAnimationFrame(check);
+    };
+    check();
+  });
+}
+
+async function openCreateForm(type) {
+  const route = { league: 'leagues', team: 'teams', player: 'players', match: 'matches' }[type];
+  const current = router.currentRoute?.pattern?.split('/')[0];
+  const main = document.getElementById('app');
+  const modalSel = { league: '#league-modal', team: '#team-modal', player: '#player-modal', match: '#match-modal' }[type];
+
+  if (current !== route) {
+    router.navigate(route);
+    await waitFor(() => main.querySelector(modalSel));
+  }
+
+  if (!main.querySelector(modalSel)) {
+    showToast('Crea o activa una liga primero', 'error');
+    return;
+  }
+
+  if (type === 'league') {
+    showLeagueForm(main);
+    return;
+  }
+
+  const league = await getActiveLeague();
+  if (!league) {
+    showToast('Activa una liga primero', 'error');
+    return;
+  }
+
+  if (type === 'team') {
+    showTeamForm(main, league);
+  } else if (type === 'player') {
+    const teams = await TeamDB.getByLeague(league.id);
+    showPlayerForm(main, league, teams);
+  } else if (type === 'match') {
+    if (league.mode !== 'liga') {
+      showToast('Solo se programan partidos en modalidad Liga', 'error');
+      return;
+    }
+    const teams = await TeamDB.getByLeague(league.id);
+    if (teams.length < 2) {
+      showToast('Necesitas al menos 2 equipos para programar un partido', 'error');
+      return;
+    }
+    showMatchForm(main, league, teams);
+  }
+}
