@@ -1,4 +1,4 @@
-const CACHE = 'podium-v6';
+const CACHE = 'podium-v7';
 
 const PRECACHE = [
   './',
@@ -34,16 +34,15 @@ self.addEventListener('fetch', (e) => {
   const isCdn = url.includes('cdnjs.cloudflare.com') || url.includes('cdn.jsdelivr.net');
   if ((isSameOrigin || isCdn) && e.request.method === 'GET') {
     e.respondWith(
-      caches.match(e.request).then((cached) => {
-        const fetched = fetch(e.request).then((res) => {
+      fetch(e.request)
+        .then((res) => {
           if (res.ok) {
             const clone = res.clone();
             caches.open(CACHE).then((cache) => cache.put(e.request, clone));
           }
           return res;
-        });
-        return cached || fetched;
-      })
+        })
+        .catch(() => caches.match(e.request))
     );
   }
 });
