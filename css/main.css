@@ -40,6 +40,10 @@ body {
   flex-direction: column;
 }
 
+html, body {
+  overflow-x: clip;
+}
+
 #app {
   flex: 1;
   padding: 2rem 1.5rem;
@@ -48,6 +52,24 @@ body {
   width: 100%;
   padding-top: 5rem;
   padding-bottom: 2rem;
+  overflow-wrap: anywhere;
+}
+
+podium-bracket,
+podium-chart,
+podium-ranking,
+podium-standings,
+podium-event-form,
+podium-league-card,
+podium-team-card,
+podium-player-card,
+podium-match-card,
+podium-navbar,
+podium-footer,
+podium-toast {
+  display: block;
+  max-width: 100%;
+  min-width: 0;
 }
 
 a {

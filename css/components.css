@@ -27,6 +27,11 @@
   height: 28px;
 }
 
+.navbar-brand:hover,
+.navbar-topbar a:hover {
+  text-decoration: none;
+}
+
 .navbar-topbar {
   display: none;
 }
