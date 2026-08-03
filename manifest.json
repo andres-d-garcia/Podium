@@ -7,7 +7,11 @@
   "background_color": "#0f1923",
   "theme_color": "#ff4655",
   "orientation": "any",
-  "categories": ["games", "sports", "utilities"],
+  "categories": [
+    "games",
+    "sports",
+    "utilities"
+  ],
   "icons": [
     {
       "src": "assets/icons/podium.svg",
@@ -16,7 +20,28 @@
       "purpose": "any maskable"
     }
   ],
-  "screenshots": [],
+  "screenshots": [
+    {
+      "src": "screenshots/dashboard.png",
+      "sizes": "1920x1080",
+      "type": "image/png"
+    },
+    {
+      "src": "screenshots/leagues.png",
+      "sizes": "1920x1080",
+      "type": "image/png"
+    },
+    {
+      "src": "screenshots/teams.png",
+      "sizes": "1920x1080",
+      "type": "image/png"
+    },
+    {
+      "src": "screenshots/dashboard-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png"
+    }
+  ],
   "shortcuts": [
     {
       "name": "Ligas",
