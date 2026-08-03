@@ -30,6 +30,7 @@ class NavBar extends HTMLElement {
 
   disconnectedCallback() {
     document.removeEventListener('click', this._onDocClick);
+    if (this._footerObserver) this._footerObserver.disconnect();
   }
 
   _onDocClick = (e) => {
@@ -147,6 +148,29 @@ class NavBar extends HTMLElement {
       e.stopPropagation();
       this._toggleMenu();
     };
+
+    this._setupFooterObserver();
+  }
+
+  // Oculta el FAB con fade cuando el footer (fin de página) entra en pantalla,
+  // para que no tape el contenido al hacer scroll en móvil.
+  _setupFooterObserver() {
+    if (this._footerObserver) this._footerObserver.disconnect();
+    const footer = document.querySelector('podium-footer');
+    if (!footer || !('IntersectionObserver' in window)) return;
+
+    const wrap = this.shadowRoot.querySelector('.navbar-fab-wrap');
+    if (!wrap) return;
+
+    const apply = (visible) => {
+      wrap.classList.toggle('hidden', visible);
+      if (wrap.classList.contains('open')) this._closeMenu();
+    };
+
+    this._footerObserver = new IntersectionObserver((entries) => {
+      for (const entry of entries) apply(entry.isIntersecting);
+    }, { root: null, threshold: 0 });
+    this._footerObserver.observe(footer);
   }
 }
 customElements.define('podium-navbar', NavBar);

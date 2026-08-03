@@ -169,6 +169,13 @@
   transform: translateX(-50%);
   bottom: calc(100% + 10px);
   z-index: 10;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.navbar-fab-wrap.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(12px);
 }
 
 .navbar-fab {

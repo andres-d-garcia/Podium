@@ -170,12 +170,13 @@ label {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: 1.25rem;
-  transition: all var(--transition);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color var(--transition), background var(--transition), filter var(--transition);
 }
 
 .card:hover {
   border-color: var(--accent);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.3);
 }
 
 .grid-list {
@@ -306,6 +307,55 @@ tr:hover td {
 @keyframes slideDown {
   from { opacity: 0; transform: translateY(-20px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* Animaciones simples (UX-01): transición suave entre vistas */
+#app {
+  animation: viewFade 0.25s ease;
+}
+
+@keyframes viewFade {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Entrada escalonada de tarjetas */
+.card {
+  animation: cardIn 0.3s ease both;
+}
+
+.grid-list > *:nth-child(1) { animation-delay: 0s; }
+.grid-list > *:nth-child(2) { animation-delay: 0.05s; }
+.grid-list > *:nth-child(3) { animation-delay: 0.1s; }
+.grid-list > *:nth-child(4) { animation-delay: 0.15s; }
+.grid-list > *:nth-child(5) { animation-delay: 0.2s; }
+.grid-list > *:nth-child(6) { animation-delay: 0.25s; }
+.grid-list > *:nth-child(7) { animation-delay: 0.3s; }
+.grid-list > *:nth-child(8) { animation-delay: 0.35s; }
+.grid-list > *:nth-child(n+9) { animation-delay: 0.4s; }
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(14px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Hover/active suave en botones */
+.btn,
+.btn-icon {
+  transition: transform 0.15s ease, filter 0.15s ease, background var(--transition), color var(--transition), border-color var(--transition);
+}
+
+.btn:active,
+.btn-icon:active {
+  transform: scale(0.96);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 @media (max-width: 1024px) {
