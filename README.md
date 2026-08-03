@@ -2,34 +2,6 @@
 
 SPA en **JavaScript vanilla** para gestionar ligas y torneos de eSports. Sin backend, sin registro, **100 % offline** con persistencia en IndexedDB.
 
-## Capturas de pantalla
-
-### Dashboard
-![Dashboard](screenshots/dashboard.png)
-
-### Ligas
-![Ligas](screenshots/leagues.png)
-
-### Equipos
-![Equipos](screenshots/teams.png)
-
-### Jugadores
-![Jugadores](screenshots/players.png)
-
-### Partidos
-![Partidos](screenshots/matches.png)
-
-### Estadísticas
-![Estadísticas](screenshots/stats.png)
-
-### Ayuda
-![Ayuda](screenshots/help.png)
-
-### Dashboard (móvil)
-![Dashboard móvil](screenshots/dashboard-mobile.png)
-
----
-
 ## Deportes soportados
 
 Cada deporte trae su propia temática visual, terminología y reglas:
@@ -126,6 +98,34 @@ start http://localhost:3000  # Windows
 ```
 
 No hay build step: el proyecto se ejecuta tal cual está en el navegador.
+
+## Capturas de pantalla
+
+### Dashboard
+![Dashboard](screenshots/dashboard.png)
+
+### Ligas
+![Ligas](screenshots/leagues.png)
+
+### Equipos
+![Equipos](screenshots/teams.png)
+
+### Jugadores
+![Jugadores](screenshots/players.png)
+
+### Partidos
+![Partidos](screenshots/matches.png)
+
+### Estadísticas
+![Estadísticas](screenshots/stats.png)
+
+### Ayuda
+![Ayuda](screenshots/help.png)
+
+### Dashboard (móvil)
+![Dashboard móvil](screenshots/dashboard-mobile.png)
+
+---
 
 ## Licencia
 
