@@ -44,9 +44,29 @@ async function renderMatchDetail(main, params) {
           <span>${escapeHtml(player?.name) || '???'}</span>
           <span class="event-badge">${escapeHtml(ev.type) || escapeHtml(sport.terms.eventName)}</span>
           <span class="event-minute">${ev.minute ? `min ${ev.minute}` : ''}</span>
+          <button class="btn btn-sm btn-danger" data-del-event="${ev.id}" style="padding:0.15rem 0.5rem;font-size:0.75rem">✕</button>
         </div>`;
       }).join('') || '<p style="color:var(--text-muted);font-size:0.85rem">Sin eventos</p>';
+
+      container.querySelectorAll('[data-del-event]').forEach(btn => {
+        btn.onclick = () => deleteEvent(Number(btn.dataset.delEvent));
+      });
     };
+
+    // Req 4.8.2: eliminar un evento individual antes de finalizar el partido
+    async function deleteEvent(eventId) {
+      await EventDB.remove(eventId);
+      const updated = await EventDB.getByMatch(match.id);
+      events.length = 0;
+      events.push(...updated);
+      if (autoScore) {
+        match.homeScore = events.filter(e => e.teamId === match.homeTeamId).length;
+        match.awayScore = events.filter(e => e.teamId === match.awayTeamId).length;
+        await MatchDB.update(match.id, { homeScore: match.homeScore, awayScore: match.awayScore });
+      }
+      renderEvents();
+      showToast(`${sport.terms.eventName} eliminada`, 'success');
+    }
 
     renderEventList(he, homeCol);
     renderEventList(ae, awayCol);

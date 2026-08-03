@@ -1,3 +1,8 @@
+// Transacciones de integridad (RNF-03 / 6.2). Cada función abre UNA transacción
+// readwrite real sobre todos los stores involucrados. Si algo falla, se revierte todo.
+
+// Req 4.8.3: finaliza un partido aplicando marcador, stats de equipos, stats de
+// jugadores y (en eliminación directa) el avance del ganador al siguiente partido.
 async function finalizarPartido(matchId) {
   const db = await openDB();
   return new Promise((resolve, reject) => {
@@ -62,31 +67,21 @@ async function finalizarPartido(matchId) {
         const eventReq = eventStore.index('byMatch').getAll(matchId);
         eventReq.onsuccess = () => {
           const events = eventReq.result || [];
-          const processedPlayers = new Set();
+          const counts = {};
           for (const evt of events) {
-            if (!processedPlayers.has(evt.playerId)) {
-              processedPlayers.add(evt.playerId);
-              const playerReq = playerStore.get(evt.playerId);
-              playerReq.onsuccess = () => {
-                if (playerReq.result) {
-                  const player = playerReq.result;
-                  player.stats.pj++;
-                  player.stats.anotaciones = (player.stats.anotaciones || 0) + 1;
-                  player.stats.promedio = player.stats.anotaciones / player.stats.pj;
-                  playerStore.put(player);
-                }
-              };
-            } else {
-              const playerReq = playerStore.get(evt.playerId);
-              playerReq.onsuccess = () => {
-                if (playerReq.result) {
-                  const player = playerReq.result;
-                  player.stats.anotaciones = (player.stats.anotaciones || 0) + 1;
-                  player.stats.promedio = player.stats.anotaciones / (player.stats.pj || 1);
-                  playerStore.put(player);
-                }
-              };
-            }
+            counts[evt.playerId] = (counts[evt.playerId] || 0) + 1;
+          }
+          for (const playerId of Object.keys(counts)) {
+            const playerReq = playerStore.get(Number(playerId));
+            playerReq.onsuccess = () => {
+              if (playerReq.result) {
+                const player = playerReq.result;
+                player.stats.pj++;
+                player.stats.anotaciones = (player.stats.anotaciones || 0) + counts[playerId];
+                player.stats.promedio = player.stats.anotaciones / player.stats.pj;
+                playerStore.put(player);
+              }
+            };
           }
         };
 
@@ -123,6 +118,8 @@ async function finalizarPartido(matchId) {
   });
 }
 
+// Req 4.8.4: deshace un partido finalizado. En eliminación directa se valida que
+// el partido de la siguiente ronda no esté finalizado antes de limpiar el slot.
 async function deshacerPartido(matchId) {
   const db = await openDB();
   return new Promise((resolve, reject) => {
@@ -192,6 +189,8 @@ async function deshacerPartido(matchId) {
 }
 
 function undoMatch(match, matchStore, teamStore, playerStore, eventStore, nextMatch, homePts, awayPts, homeStatus, awayStatus) {
+  const prevHomeScore = match.homeScore;
+  const prevAwayScore = match.awayScore;
   match.status = 'scheduled';
   match.homeScore = 0;
   match.awayScore = 0;
@@ -206,8 +205,8 @@ function undoMatch(match, matchStore, teamStore, playerStore, eventStore, nextMa
       home.stats.pg -= homeStatus === 'win' ? 1 : 0;
       home.stats.pe -= homeStatus === 'draw' ? 1 : 0;
       home.stats.pp -= homeStatus === 'loss' ? 1 : 0;
-      home.stats.pf -= match.homeScore;
-      home.stats.pc -= match.awayScore;
+      home.stats.pf -= prevHomeScore;
+      home.stats.pc -= prevAwayScore;
       home.stats.dif = home.stats.pf - home.stats.pc;
       home.stats.pts -= homePts;
       teamStore.put(home);
@@ -222,8 +221,8 @@ function undoMatch(match, matchStore, teamStore, playerStore, eventStore, nextMa
       away.stats.pg -= awayStatus === 'win' ? 1 : 0;
       away.stats.pe -= awayStatus === 'draw' ? 1 : 0;
       away.stats.pp -= awayStatus === 'loss' ? 1 : 0;
-      away.stats.pf -= match.awayScore;
-      away.stats.pc -= match.homeScore;
+      away.stats.pf -= prevAwayScore;
+      away.stats.pc -= prevHomeScore;
       away.stats.dif = away.stats.pf - away.stats.pc;
       away.stats.pts -= awayPts;
       teamStore.put(away);
@@ -233,31 +232,21 @@ function undoMatch(match, matchStore, teamStore, playerStore, eventStore, nextMa
   const eventReq = eventStore.index('byMatch').getAll(match.id);
   eventReq.onsuccess = () => {
     const events = eventReq.result || [];
-    const processedPlayers = new Set();
+    const counts = {};
     for (const evt of events) {
-      if (!processedPlayers.has(evt.playerId)) {
-        processedPlayers.add(evt.playerId);
-        const playerReq = playerStore.get(evt.playerId);
-        playerReq.onsuccess = () => {
-          if (playerReq.result) {
-            const player = playerReq.result;
-            player.stats.pj = Math.max(0, (player.stats.pj || 1) - 1);
-            player.stats.anotaciones = Math.max(0, (player.stats.anotaciones || 1) - 1);
-            player.stats.promedio = player.stats.pj > 0 ? player.stats.anotaciones / player.stats.pj : 0;
-            playerStore.put(player);
-          }
-        };
-      } else {
-        const playerReq = playerStore.get(evt.playerId);
-        playerReq.onsuccess = () => {
-          if (playerReq.result) {
-            const player = playerReq.result;
-            player.stats.anotaciones = Math.max(0, (player.stats.anotaciones || 1) - 1);
-            player.stats.promedio = player.stats.pj > 0 ? player.stats.anotaciones / player.stats.pj : 0;
-            playerStore.put(player);
-          }
-        };
-      }
+      counts[evt.playerId] = (counts[evt.playerId] || 0) + 1;
+    }
+    for (const playerId of Object.keys(counts)) {
+      const playerReq = playerStore.get(Number(playerId));
+      playerReq.onsuccess = () => {
+        if (playerReq.result) {
+          const player = playerReq.result;
+          player.stats.pj = Math.max(0, (player.stats.pj || 1) - 1);
+          player.stats.anotaciones = Math.max(0, (player.stats.anotaciones || 1) - counts[playerId]);
+          player.stats.promedio = player.stats.pj > 0 ? player.stats.anotaciones / player.stats.pj : 0;
+          playerStore.put(player);
+        }
+      };
     }
   };
 
@@ -367,6 +356,7 @@ async function revertMatchStats(matchId) {
   });
 }
 
+// Req 4.2.4: elimina una liga en cascada (equipos, jugadores, partidos y eventos)
 async function eliminarLigaEnCascada(leagueId) {
   const db = await openDB();
   return new Promise((resolve, reject) => {

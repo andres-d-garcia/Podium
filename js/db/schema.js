@@ -1,6 +1,8 @@
 const DB_NAME = 'podium-db';
 const DB_VERSION = 2;
 
+// Esquema de IndexedDB (6.1): 5 object stores con sus índices.
+// leagues → teams → players / matches → events (relaciones)
 const STORES = {
   leagues: { keyPath: 'id', autoIncrement: true },
   teams: { keyPath: 'id', autoIncrement: true },

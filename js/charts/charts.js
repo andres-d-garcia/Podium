@@ -1,3 +1,4 @@
+// Renderizado de gráficos (6.3): helpers que devuelven configs de Chart.js.
 function createChartConfig(type, labels, datasets, options = {}) {
   return { type, data: { labels, datasets }, options };
 }
@@ -111,4 +112,28 @@ function getPlayerProgressionChart(events, matchDates, playerName) {
     fill: false,
     tension: 0.3,
   }], { plugins: { legend: { position: 'bottom' } } });
+}
+
+// Req 4.9.3: anotaciones totales por ronda (modalidad eliminación directa)
+function getScorersByRoundChart(finishedMatches, allEvents, eventLabel) {
+  if (finishedMatches.length === 0) return null;
+
+  const rounds = [...new Set(finishedMatches.map(m => m.round))].sort((a, b) => a - b);
+  const roundNames = { 1: 'Octavos', 2: 'Cuartos', 3: 'Semifinal', 4: 'Final' };
+
+  const counts = rounds.map(round => {
+    const ids = new Set(finishedMatches.filter(m => m.round === round).map(m => m.id));
+    return allEvents.filter(e => ids.has(e.matchId)).length;
+  });
+
+  return createChartConfig('bar',
+    rounds.map(r => roundNames[r] || `Ronda ${r}`),
+    [{
+      label: eventLabel,
+      data: counts,
+      backgroundColor: '#ff4655',
+      borderRadius: 4,
+    }],
+    { plugins: { legend: { display: false } } }
+  );
 }

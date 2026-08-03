@@ -16,10 +16,15 @@ async function renderMatches(main) {
     const status = main.querySelector('#mf-status').value;
     const team = main.querySelector('#mf-team').value;
     const round = main.querySelector('#mf-round')?.value;
+    const from = main.querySelector('#mf-date-from')?.value;
+    const to = main.querySelector('#mf-date-to')?.value;
     filtered = allMatches.filter(m => {
       if (status && m.status !== status) return false;
       if (team && m.homeTeamId !== Number(team) && m.awayTeamId !== Number(team)) return false;
       if (round && m.round !== Number(round)) return false;
+      const d = new Date(m.date);
+      if (from && d < new Date(from + 'T00:00:00')) return false;
+      if (to && d > new Date(to + 'T23:59:59')) return false;
       return true;
     });
     renderList();
@@ -57,8 +62,20 @@ async function renderMatches(main) {
             ${m.status === 'finished' ? 'Finalizado' : m.status === 'scheduled' ? 'Programado' : 'Pendiente'}
           </span>
         </div>
+        ${league.mode === 'liga' && m.status === 'scheduled' ? `
+        <div style="display:flex;justify-content:flex-end;margin-top:0.5rem">
+          <button class="btn btn-sm btn-danger" data-delete-match="${m.id}">Eliminar</button>
+        </div>
+        ` : ''}
       `;
-      card.onclick = () => router.navigate(`match/${m.id}`);
+      card.onclick = (e) => {
+        if (!e.target.closest('button')) router.navigate(`match/${m.id}`);
+      };
+      const delBtn = card.querySelector('[data-delete-match]');
+      if (delBtn) delBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteMatch(main, m);
+      });
       container.appendChild(card);
     }
   }
@@ -94,6 +111,14 @@ async function renderMatches(main) {
         </select>
       </div>
       ` : ''}
+      <div class="form-group">
+        <label>Desde</label>
+        <input type="date" id="mf-date-from">
+      </div>
+      <div class="form-group">
+        <label>Hasta</label>
+        <input type="date" id="mf-date-to">
+      </div>
       <button class="btn btn-secondary" id="mf-clear">Limpiar</button>
     </div>
     <div id="match-list"></div>
@@ -103,10 +128,14 @@ async function renderMatches(main) {
   main.querySelector('#mf-status').onchange = applyFilters;
   main.querySelector('#mf-team').onchange = applyFilters;
   main.querySelector('#mf-round')?.addEventListener('change', applyFilters);
+  main.querySelector('#mf-date-from').onchange = applyFilters;
+  main.querySelector('#mf-date-to').onchange = applyFilters;
   main.querySelector('#mf-clear').onclick = () => {
     main.querySelector('#mf-status').value = '';
     main.querySelector('#mf-team').value = '';
     if (main.querySelector('#mf-round')) main.querySelector('#mf-round').value = '';
+    main.querySelector('#mf-date-from').value = '';
+    main.querySelector('#mf-date-to').value = '';
     applyFilters();
   };
 
@@ -172,6 +201,18 @@ function showMatchForm(main, league, teams) {
       return;
     }
 
+    // Req 4.7.3: no permitir dos partidos con los mismos equipos en la misma fecha exacta
+    const allMatches = await MatchDB.getByLeague(league.id);
+    const dup = allMatches.find(m =>
+      ((m.homeTeamId === home && m.awayTeamId === away) ||
+       (m.homeTeamId === away && m.awayTeamId === home)) &&
+      m.date === date.toISOString()
+    );
+    if (dup) {
+      showToast('Ya existe un partido entre estos equipos en esa fecha', 'error');
+      return;
+    }
+
     await MatchDB.create({
       leagueId: league.id,
       homeTeamId: home,
@@ -183,4 +224,21 @@ function showMatchForm(main, league, teams) {
     showToast('Partido programado', 'success');
     renderMatches(main);
   };
+}
+
+// Req 4.7.4: elimina solo partidos programados en modalidad liga
+async function deleteMatch(main, match) {
+  if (match.status === 'finished') {
+    showToast('No se puede eliminar: el partido ya está finalizado. Usa "Deshacer".', 'error');
+    return;
+  }
+  const confirmed = await confirmAction('¿Eliminar este partido programado?');
+  if (!confirmed) return;
+  try {
+    await MatchDB.remove(match.id);
+    showToast('Partido eliminado', 'success');
+    renderMatches(main);
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
 }

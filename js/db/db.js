@@ -1,5 +1,8 @@
 let dbInstance = null;
 
+// Capa de acceso a IndexedDB (RNF-02 / 6.1): centraliza todas las operaciones.
+// Ningún componente abre transacciones ad-hoc; siempre consume estas funciones helper.
+
 function openDB() {
   return new Promise((resolve, reject) => {
     if (dbInstance) return resolve(dbInstance);
@@ -42,6 +45,7 @@ function getTransaction(stores, mode = 'readonly') {
   return dbInstance.transaction(stores, mode);
 }
 
+// Lectura genérica de un object store completo
 function getAll(storeName) {
   return new Promise((resolve, reject) => {
     openDB().then(db => {
@@ -91,6 +95,7 @@ function addItem(storeName, item) {
   });
 }
 
+// Escritura (update) de un registro existente
 function putItem(storeName, item) {
   return new Promise((resolve, reject) => {
     openDB().then(db => {

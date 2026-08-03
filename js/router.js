@@ -5,6 +5,7 @@ class Router {
     window.addEventListener('hashchange', () => this.resolve());
   }
 
+  // Registra una vista (pattern → handler). Manejo de navegación por hash (RNF-04).
   addRoute(pattern, handler) {
     this.routes[pattern] = handler;
   }
@@ -13,6 +14,7 @@ class Router {
     window.location.hash = path;
   }
 
+  // Resuelve el hash actual contra las rutas registradas y renderiza la vista
   resolve() {
     const hash = window.location.hash.slice(1) || 'dashboard';
     const main = document.getElementById('app');

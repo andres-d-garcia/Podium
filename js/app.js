@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadSampleData();
     await restoreActiveLeague();
     router.start();
+    window.__podiumReady = true;
   } catch (e) {
     console.error('Error inicializando Podium:', e);
     document.getElementById('app').innerHTML = `

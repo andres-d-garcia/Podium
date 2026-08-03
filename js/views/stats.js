@@ -33,6 +33,12 @@ async function renderStats(main) {
         <h4><i class="fa-solid fa-chart-line"></i> Evolución comparativa</h4>
         <podium-chart id="chart-evolution"></podium-chart>
       </div>
+      ${league.mode === 'eliminacion' ? `
+      <div class="card full-width">
+        <h4><i class="fa-solid fa-chart-column"></i> Anotaciones por ronda</h4>
+        <podium-chart id="chart-rounds"></podium-chart>
+      </div>
+      ` : ''}
     </div>
   `;
 
@@ -75,6 +81,13 @@ async function renderStats(main) {
       const chartEvo = main.querySelector('#chart-evolution');
       const evoConfig = getPointsByDateChart(allMatches, teams, league);
       if (chartEvo) chartEvo.renderChart(evoConfig);
+
+      const chartRounds = main.querySelector('#chart-rounds');
+      if (chartRounds) {
+        EventDB.getAll().then(allEvents => {
+          chartRounds.renderChart(getScorersByRoundChart(finished, allEvents, sport.terms.eventNamePlural));
+        });
+      }
     }, 50);
   }
 

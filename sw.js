@@ -1,4 +1,4 @@
-const CACHE = 'podium-v5';
+const CACHE = 'podium-v6';
 
 const PRECACHE = [
   './',
@@ -10,6 +10,8 @@ const PRECACHE = [
   './css/themes/valorant.css',
   './css/themes/fighting.css',
   './css/themes/lol.css',
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css',
+  'https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js',
 ];
 
 self.addEventListener('install', (e) => {
@@ -27,7 +29,10 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
-  if (e.request.url.startsWith(self.location.origin) && e.request.method === 'GET') {
+  const url = e.request.url;
+  const isSameOrigin = url.startsWith(self.location.origin);
+  const isCdn = url.includes('cdnjs.cloudflare.com') || url.includes('cdn.jsdelivr.net');
+  if ((isSameOrigin || isCdn) && e.request.method === 'GET') {
     e.respondWith(
       caches.match(e.request).then((cached) => {
         const fetched = fetch(e.request).then((res) => {

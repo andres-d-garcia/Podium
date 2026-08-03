@@ -39,8 +39,17 @@ async function renderPlayers(main) {
             ${p.stats?.anotaciones || 0} ${escapeHtml(sport.terms.eventNamePlural).toLowerCase()} · ${p.stats?.pj || 0} PJ
           </p>
         </div>
+        <div style="margin-top:0.75rem;display:flex;gap:0.5rem;justify-content:center">
+          <button class="btn btn-sm btn-danger" data-delete-player="${p.id}">Eliminar</button>
+        </div>
       `;
-      card.onclick = () => router.navigate(`player/${p.id}`);
+      card.onclick = (e) => {
+        if (!e.target.closest('button')) router.navigate(`player/${p.id}`);
+      };
+      card.querySelector('[data-delete-player]').addEventListener('click', (e) => {
+        e.stopPropagation();
+        deletePlayer(main, p);
+      });
       container.appendChild(card);
     }
   }
@@ -106,9 +115,11 @@ async function renderPlayers(main) {
   showLoading(false);
 }
 
-function showPlayerForm(main, league, teams, player) {
+function showPlayerForm(main, league, teams, player, opts = {}) {
   const editMode = !!player;
-  const modal = main.querySelector('#player-modal');
+  const modalId = opts.modalId || '#player-modal';
+  const preselectTeamId = opts.preselectTeamId;
+  const modal = main.querySelector(modalId);
   modal.style.display = 'flex';
   modal.innerHTML = `
     <div class="modal-content">
@@ -131,7 +142,10 @@ function showPlayerForm(main, league, teams, player) {
         <div class="form-group">
           <label>Equipo</label>
           <select id="pf-team-select" required>
-            ${teams.map(t => `<option value="${t.id}" ${editMode && player.teamId === t.id ? 'selected' : ''}>${escapeHtml(t.name)}</option>`).join('')}
+            ${teams.map(t => {
+              const selected = editMode ? player.teamId === t.id : preselectTeamId === t.id;
+              return `<option value="${t.id}" ${selected ? 'selected' : ''}>${escapeHtml(t.name)}</option>`;
+            }).join('')}
           </select>
         </div>
         <div class="modal-actions">
@@ -162,4 +176,17 @@ function showPlayerForm(main, league, teams, player) {
     modal.style.display = 'none';
     renderPlayers(main);
   };
+}
+
+// Req 4.5.4: elimina un jugador con confirmación; bloqueado si tiene eventos registrados
+async function deletePlayer(main, player) {
+  const confirmed = await confirmAction(`¿Eliminar a "${player.name}"?`);
+  if (!confirmed) return;
+  try {
+    await PlayerDB.remove(player.id);
+    showToast(`"${player.name}" eliminado`, 'success');
+    renderPlayers(main);
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
 }

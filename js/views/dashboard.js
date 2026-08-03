@@ -14,6 +14,7 @@ async function renderDashboard(main) {
 
   const sport = getLeagueSport(league);
   const teams = await TeamDB.getByLeague(league.id);
+  const allLeagues = await LeagueDB.getAll();
   const allMatches = await MatchDB.getByLeague(league.id);
   const finished = allMatches.filter(m => m.status === 'finished');
   const scheduled = allMatches.filter(m => m.status === 'scheduled');
@@ -57,6 +58,14 @@ async function renderDashboard(main) {
   main.innerHTML = `
     <div class="section-header">
       <div class="section-title"><i class="${sport.icon}"></i> ${escapeHtml(league.name)} <span style="font-size:0.9rem;color:var(--text-secondary);font-weight:400">— ${sport.name} · ${escapeHtml(league.season)}</span></div>
+      ${allLeagues.length > 1 ? `
+        <div style="display:flex;align-items:center;gap:0.5rem">
+          <label style="font-size:0.85rem;color:var(--text-secondary)">Liga activa:</label>
+          <select id="dash-league-select" class="form-select" style="padding:0.35rem 0.6rem;border:1px solid var(--border-color);border-radius:var(--radius);background:var(--bg-card);color:var(--text-primary)">
+            ${allLeagues.map(l => `<option value="${l.id}" ${l.id === league.id ? 'selected' : ''}>${escapeHtml(l.name)}</option>`).join('')}
+          </select>
+        </div>
+      ` : ''}
     </div>
     <div class="dashboard-grid">
       <div class="card">
@@ -81,6 +90,10 @@ async function renderDashboard(main) {
       <div class="card full-width">
         <h4><i class="fa-solid fa-medal"></i> Top anotadores</h4>
         <podium-chart id="chart-top"></podium-chart>
+      </div>
+      <div class="card full-width">
+        <h4><i class="fa-solid fa-star"></i> Equipos con más puntos a favor</h4>
+        <podium-chart id="chart-pf"></podium-chart>
       </div>
     </div>
   `;
@@ -119,7 +132,25 @@ async function renderDashboard(main) {
       if (chartTop && teamPlayers.length > 0) {
         chartTop.renderChart(getTopScorersChart(teamPlayers, 10, sport.terms.eventNamePlural));
       }
+
+      const chartPf = main.querySelector('#chart-pf');
+      if (chartPf && teams.length > 0) {
+        chartPf.renderChart(getTeamPointsRadar(teams));
+      }
     }, 50);
+  }
+
+  // Req 4.1.1: cambiar de liga activa desde el dashboard
+  const leagueSelect = main.querySelector('#dash-league-select');
+  if (leagueSelect) {
+    leagueSelect.onchange = async () => {
+      const nextId = Number(leagueSelect.value);
+      if (nextId && nextId !== league.id) {
+        await LeagueDB.setActive(nextId);
+        showToast('Liga activa cambiada', 'success');
+        router.navigate('dashboard');
+      }
+    };
   }
 
   await refreshActiveLeagueIndicator();

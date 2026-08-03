@@ -42,7 +42,13 @@ const PlayerDB = {
     return putItem('players', player);
   },
 
+  // RNF-03: la eliminación segura verifica integridad antes de borrar
   async remove(id) {
+    // Regla de integridad: si el jugador tiene eventos registrados, no se puede eliminar
+    const events = await getByIndex('events', 'byPlayer', id);
+    if (events.length > 0) {
+      throw new Error('No se puede eliminar: el jugador tiene anotaciones registradas en partidos');
+    }
     return deleteItem('players', id);
   },
 };

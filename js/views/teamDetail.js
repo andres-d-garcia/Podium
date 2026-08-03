@@ -49,11 +49,12 @@ async function renderTeamDetail(main, params) {
 
     <div class="section-header">
       <h3 class="section-title" style="font-size:1.1rem"><i class="fa-solid fa-users"></i> Plantilla (${players.length})</h3>
-      <button class="btn btn-primary btn-sm" onclick="router.navigate('players')">+ Agregar jugador</button>
+      <button class="btn btn-primary btn-sm" id="btn-add-player">+ Agregar jugador</button>
     </div>
     <div class="grid-list" id="team-players">
       ${players.length === 0 ? '<p style="color:var(--text-muted)">Sin jugadores</p>' : ''}
     </div>
+    <div id="team-player-modal" class="modal-overlay" style="display:none"></div>
 
     ${upcoming.length > 0 ? `
       <h3 class="section-title" style="font-size:1.1rem;margin-top:2rem"><i class="fa-solid fa-calendar-days"></i> Próximos partidos</h3>
@@ -145,4 +146,16 @@ async function renderTeamDetail(main, params) {
   }
 
   showLoading(false);
+
+  // Req 4.4.2: "Agregar jugador" abre el formulario pre-asignado al equipo actual
+  const addPlayerBtn = main.querySelector('#btn-add-player');
+  if (addPlayerBtn) {
+    addPlayerBtn.onclick = async () => {
+      const leagueTeams = await TeamDB.getByLeague(activeLeague.id);
+      showPlayerForm(main, activeLeague, leagueTeams, null, {
+        modalId: '#team-player-modal',
+        preselectTeamId: team.id,
+      });
+    };
+  }
 }
