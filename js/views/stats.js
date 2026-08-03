@@ -6,31 +6,31 @@ async function renderStats(main) {
   }
 
   showLoading(true);
-  const sport = getSport(league.sport);
+  const sport = getLeagueSport(league);
   const teams = await TeamDB.getByLeague(league.id);
   const allMatches = await MatchDB.getByLeague(league.id);
   const finished = allMatches.filter(m => m.status === 'finished');
 
   main.innerHTML = `
-    <div class="section-title">📊 Estadísticas — ${escapeHtml(league.name)}</div>
+    <div class="section-title"><i class="fa-solid fa-chart-pie"></i> Estadísticas — ${escapeHtml(league.name)}</div>
 
     <div id="standings-section" style="margin-bottom:2rem"></div>
 
     <div class="stats-chart-grid">
       <div class="card">
-        <h4>🏅 Top anotadores</h4>
+        <h4><i class="fa-solid fa-medal"></i> Top anotadores</h4>
         <podium-ranking id="rank-anotadores"></podium-ranking>
       </div>
       <div class="card">
-        <h4>📊 Distribución de resultados</h4>
+        <h4><i class="fa-solid fa-chart-pie"></i> Distribución de resultados</h4>
         <podium-chart id="chart-results"></podium-chart>
       </div>
       <div class="card">
-        <h4>📈 Top puntos a favor</h4>
+        <h4><i class="fa-solid fa-chart-line"></i> Top puntos a favor</h4>
         <podium-chart id="chart-top-pf"></podium-chart>
       </div>
       <div class="card">
-        <h4>📉 Evolución comparativa</h4>
+        <h4><i class="fa-solid fa-chart-line"></i> Evolución comparativa</h4>
         <podium-chart id="chart-evolution"></podium-chart>
       </div>
     </div>
@@ -64,7 +64,7 @@ async function renderStats(main) {
 
     setTimeout(() => {
       const ranking = main.querySelector('#rank-anotadores');
-      if (ranking) ranking.data = teamPlayers;
+      if (ranking) { ranking.sport = sport; ranking.data = teamPlayers; }
 
       const chartResults = main.querySelector('#chart-results');
       if (chartResults) chartResults.renderChart(getResultDistributionChart(teams));
@@ -73,7 +73,7 @@ async function renderStats(main) {
       if (chartTopPf) chartTopPf.renderChart(getTopScorersChart(teamPlayers, 10, sport.terms.eventNamePlural));
 
       const chartEvo = main.querySelector('#chart-evolution');
-      const evoConfig = getPointsByDateChart(allMatches, teams);
+      const evoConfig = getPointsByDateChart(allMatches, teams, league);
       if (chartEvo) chartEvo.renderChart(evoConfig);
     }, 50);
   }

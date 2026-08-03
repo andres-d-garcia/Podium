@@ -9,11 +9,18 @@ class RankingTable extends HTMLElement {
     this.render();
   }
 
+  set sport(val) {
+    this._sport = val;
+    this.render();
+  }
+
   render() {
     if (!this._data || this._data.length === 0) {
       this.shadowRoot.innerHTML = `<p style="color:var(--text-muted)">No hay datos de jugadores</p>`;
       return;
     }
+
+    const scoreLabel = this._sport?.terms?.eventNamePlural || 'Anotaciones';
 
     const sorted = [...this._data].sort((a, b) => (b.stats.anotaciones || 0) - (a.stats.anotaciones || 0));
     const top = sorted.slice(0, 10);
@@ -27,7 +34,7 @@ class RankingTable extends HTMLElement {
             <th>#</th>
             <th>Jugador</th>
             <th>Equipo</th>
-            <th>Anotaciones</th>
+            <th>${scoreLabel}</th>
             <th>PJ</th>
             <th>Promedio</th>
           </tr>

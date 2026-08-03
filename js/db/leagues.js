@@ -22,6 +22,7 @@ const LeagueDB = {
       rounds: data.mode === 'liga' ? (data.rounds || 1) : null,
       bracketSize: data.mode === 'eliminacion' ? (data.bracketSize || 4) : null,
       doubleElimination: data.doubleElimination || false,
+      format: data.format || undefined,
       isActive: '0',
       createdAt: new Date().toISOString(),
     };
@@ -34,6 +35,7 @@ const LeagueDB = {
     if (data.name !== undefined) league.name = data.name;
     if (data.season !== undefined) league.season = data.season;
     if (data.description !== undefined) league.description = data.description;
+    if (data.format !== undefined) league.format = data.format;
     return putItem('leagues', league);
   },
 

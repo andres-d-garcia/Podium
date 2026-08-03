@@ -8,7 +8,7 @@ async function renderPlayerDetail(main, params) {
   }
 
   const league = await getActiveLeague();
-  const sport = league ? getSport(league.sport) : SPORTS.valorant;
+  const sport = getLeagueSport(league);
   const team = await TeamDB.getById(player.teamId);
   const allEvents = await EventDB.getByPlayer(player.id);
   const matchIds = [...new Set(allEvents.map(e => e.matchId))];
@@ -35,18 +35,18 @@ async function renderPlayerDetail(main, params) {
 
     <div class="stats-grid">
       <div class="stat-card"><div class="stat-value">${player.stats.pj}</div><div class="stat-label">PJ</div></div>
-      <div class="stat-card"><div class="stat-value">${player.stats.anotaciones || 0}</div><div class="stat-label">Anotaciones</div></div>
+      <div class="stat-card"><div class="stat-value">${player.stats.anotaciones || 0}</div><div class="stat-label">${escapeHtml(sport.terms.eventNamePlural)}</div></div>
       <div class="stat-card"><div class="stat-value">${avg}</div><div class="stat-label">Promedio</div></div>
     </div>
 
-    <h3 class="section-title" style="font-size:1.1rem">📋 Historial de partidos</h3>
+    <h3 class="section-title" style="font-size:1.1rem"><i class="fa-solid fa-clipboard-list"></i> Historial de partidos</h3>
     <div id="player-matches">
       ${matches.length === 0 ? '<p style="color:var(--text-muted)">Sin partidos registrados</p>' : ''}
     </div>
 
     ${matches.length > 0 ? `
       <div class="card" style="margin-top:1.5rem">
-        <h4>Anotaciones por partido</h4>
+        <h4>${escapeHtml(sport.terms.eventNamePlural)} por partido</h4>
         <podium-chart id="chart-player"></podium-chart>
       </div>
     ` : ''}
@@ -92,7 +92,7 @@ async function renderPlayerDetail(main, params) {
           data: {
             labels,
             datasets: [{
-              label: 'Anotaciones',
+              label: escapeHtml(sport.terms.eventNamePlural),
               data,
               backgroundColor: '#ff4655',
               borderRadius: 4,

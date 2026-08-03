@@ -1,7 +1,8 @@
 async function finalizarPartido(matchId) {
   const db = await openDB();
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(['matches', 'teams', 'players', 'events'], 'readwrite');
+    const tx = db.transaction(['leagues', 'matches', 'teams', 'players', 'events'], 'readwrite');
+    const leagueStore = tx.objectStore('leagues');
     const matchStore = tx.objectStore('matches');
     const teamStore = tx.objectStore('teams');
     const playerStore = tx.objectStore('players');
@@ -15,110 +16,106 @@ async function finalizarPartido(matchId) {
         return;
       }
 
-      const homeScore = match.homeScore || 0;
-      const awayScore = match.awayScore || 0;
-      let homePts = 0, awayPts = 0;
-      if (homeScore > awayScore) { homePts = 3; awayPts = 0; }
-      else if (homeScore < awayScore) { homePts = 0; awayPts = 3; }
-      else { homePts = 1; awayPts = 1; }
+      const leagueReq = leagueStore.get(match.leagueId);
+      leagueReq.onsuccess = () => {
+        const league = leagueReq.result || null;
+        const { homePts, awayPts, homeStatus, awayStatus, winnerId, loserId } = computeMatchResult(
+          league, match.homeTeamId, match.awayTeamId, match.homeScore, match.awayScore
+        );
 
-      const winnerId = homeScore > awayScore ? match.homeTeamId :
-                        awayScore > homeScore ? match.awayTeamId : null;
-      const loserId = winnerId && winnerId === match.homeTeamId ? match.awayTeamId :
-                       winnerId && winnerId === match.awayTeamId ? match.homeTeamId : null;
+        match.status = 'finished';
+        match.winnerId = winnerId;
+        matchStore.put(match);
 
-      match.status = 'finished';
-      match.winnerId = winnerId;
-      matchStore.put(match);
-
-      const homeReq = teamStore.get(match.homeTeamId);
-      homeReq.onsuccess = () => {
-        const home = homeReq.result;
-        if (home) {
-          home.stats.pj++;
-          home.stats.pg += homePts === 3 ? 1 : 0;
-          home.stats.pe += homePts === 1 ? 1 : 0;
-          home.stats.pp += homePts === 0 ? 1 : 0;
-          home.stats.pf += homeScore;
-          home.stats.pc += awayScore;
-          home.stats.dif = home.stats.pf - home.stats.pc;
-          home.stats.pts += homePts;
-          teamStore.put(home);
-        }
-      };
-
-      const awayReq = teamStore.get(match.awayTeamId);
-      awayReq.onsuccess = () => {
-        const away = awayReq.result;
-        if (away) {
-          away.stats.pj++;
-          away.stats.pg += awayPts === 3 ? 1 : 0;
-          away.stats.pe += awayPts === 1 ? 1 : 0;
-          away.stats.pp += awayPts === 0 ? 1 : 0;
-          away.stats.pf += awayScore;
-          away.stats.pc += homeScore;
-          away.stats.dif = away.stats.pf - away.stats.pc;
-          away.stats.pts += awayPts;
-          teamStore.put(away);
-        }
-      };
-
-      const eventReq = eventStore.index('byMatch').getAll(matchId);
-      eventReq.onsuccess = () => {
-        const events = eventReq.result || [];
-        const processedPlayers = new Set();
-        for (const evt of events) {
-          if (!processedPlayers.has(evt.playerId)) {
-            processedPlayers.add(evt.playerId);
-            const playerReq = playerStore.get(evt.playerId);
-            playerReq.onsuccess = () => {
-              if (playerReq.result) {
-                const player = playerReq.result;
-                player.stats.pj++;
-                player.stats.anotaciones = (player.stats.anotaciones || 0) + 1;
-                player.stats.promedio = player.stats.anotaciones / player.stats.pj;
-                playerStore.put(player);
-              }
-            };
-          } else {
-            const playerReq = playerStore.get(evt.playerId);
-            playerReq.onsuccess = () => {
-              if (playerReq.result) {
-                const player = playerReq.result;
-                player.stats.anotaciones = (player.stats.anotaciones || 0) + 1;
-                player.stats.promedio = player.stats.anotaciones / (player.stats.pj || 1);
-                playerStore.put(player);
-              }
-            };
-          }
-        }
-      };
-
-      if (match.nextMatchId) {
-        const nextReq = matchStore.get(match.nextMatchId);
-        nextReq.onsuccess = () => {
-          const next = nextReq.result;
-          if (next) {
-            if (match.nextSlot === 'home') next.homeTeamId = winnerId;
-            else next.awayTeamId = winnerId;
-            if (next.homeTeamId && next.awayTeamId) next.status = 'scheduled';
-            matchStore.put(next);
+        const homeReq = teamStore.get(match.homeTeamId);
+        homeReq.onsuccess = () => {
+          const home = homeReq.result;
+          if (home) {
+            home.stats.pj++;
+            home.stats.pg += homeStatus === 'win' ? 1 : 0;
+            home.stats.pe += homeStatus === 'draw' ? 1 : 0;
+            home.stats.pp += homeStatus === 'loss' ? 1 : 0;
+            home.stats.pf += match.homeScore;
+            home.stats.pc += match.awayScore;
+            home.stats.dif = home.stats.pf - home.stats.pc;
+            home.stats.pts += homePts;
+            teamStore.put(home);
           }
         };
-      }
 
-      if (match.loserMatchId && loserId) {
-        const loserReq = matchStore.get(match.loserMatchId);
-        loserReq.onsuccess = () => {
-          const loserMatch = loserReq.result;
-          if (loserMatch) {
-            if (match.loserSlot === 'home') loserMatch.homeTeamId = loserId;
-            else loserMatch.awayTeamId = loserId;
-            if (loserMatch.homeTeamId && loserMatch.awayTeamId) loserMatch.status = 'scheduled';
-            matchStore.put(loserMatch);
+        const awayReq = teamStore.get(match.awayTeamId);
+        awayReq.onsuccess = () => {
+          const away = awayReq.result;
+          if (away) {
+            away.stats.pj++;
+            away.stats.pg += awayStatus === 'win' ? 1 : 0;
+            away.stats.pe += awayStatus === 'draw' ? 1 : 0;
+            away.stats.pp += awayStatus === 'loss' ? 1 : 0;
+            away.stats.pf += match.awayScore;
+            away.stats.pc += match.homeScore;
+            away.stats.dif = away.stats.pf - away.stats.pc;
+            away.stats.pts += awayPts;
+            teamStore.put(away);
           }
         };
-      }
+
+        const eventReq = eventStore.index('byMatch').getAll(matchId);
+        eventReq.onsuccess = () => {
+          const events = eventReq.result || [];
+          const processedPlayers = new Set();
+          for (const evt of events) {
+            if (!processedPlayers.has(evt.playerId)) {
+              processedPlayers.add(evt.playerId);
+              const playerReq = playerStore.get(evt.playerId);
+              playerReq.onsuccess = () => {
+                if (playerReq.result) {
+                  const player = playerReq.result;
+                  player.stats.pj++;
+                  player.stats.anotaciones = (player.stats.anotaciones || 0) + 1;
+                  player.stats.promedio = player.stats.anotaciones / player.stats.pj;
+                  playerStore.put(player);
+                }
+              };
+            } else {
+              const playerReq = playerStore.get(evt.playerId);
+              playerReq.onsuccess = () => {
+                if (playerReq.result) {
+                  const player = playerReq.result;
+                  player.stats.anotaciones = (player.stats.anotaciones || 0) + 1;
+                  player.stats.promedio = player.stats.anotaciones / (player.stats.pj || 1);
+                  playerStore.put(player);
+                }
+              };
+            }
+          }
+        };
+
+        if (match.nextMatchId) {
+          const nextReq = matchStore.get(match.nextMatchId);
+          nextReq.onsuccess = () => {
+            const next = nextReq.result;
+            if (next) {
+              if (match.nextSlot === 'home') next.homeTeamId = winnerId;
+              else next.awayTeamId = winnerId;
+              if (next.homeTeamId && next.awayTeamId) next.status = 'scheduled';
+              matchStore.put(next);
+            }
+          };
+        }
+
+        if (match.loserMatchId && loserId) {
+          const loserReq = matchStore.get(match.loserMatchId);
+          loserReq.onsuccess = () => {
+            const loserMatch = loserReq.result;
+            if (loserMatch) {
+              if (match.loserSlot === 'home') loserMatch.homeTeamId = loserId;
+              else loserMatch.awayTeamId = loserId;
+              if (loserMatch.homeTeamId && loserMatch.awayTeamId) loserMatch.status = 'scheduled';
+              matchStore.put(loserMatch);
+            }
+          };
+        }
+      };
     };
 
     tx.oncomplete = () => resolve();
@@ -129,7 +126,8 @@ async function finalizarPartido(matchId) {
 async function deshacerPartido(matchId) {
   const db = await openDB();
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(['matches', 'teams', 'players', 'events'], 'readwrite');
+    const tx = db.transaction(['leagues', 'matches', 'teams', 'players', 'events'], 'readwrite');
+    const leagueStore = tx.objectStore('leagues');
     const matchStore = tx.objectStore('matches');
     const teamStore = tx.objectStore('teams');
     const playerStore = tx.objectStore('players');
@@ -143,41 +141,49 @@ async function deshacerPartido(matchId) {
         return;
       }
 
-      if (match.nextMatchId) {
-        const nextReq = matchStore.get(match.nextMatchId);
-        nextReq.onsuccess = () => {
-          const next = nextReq.result;
-          if (next && next.status === 'finished') {
-            reject(new Error('No se puede deshacer: el partido de la siguiente ronda ya está finalizado. Deshace ese primero.'));
-            return;
-          }
-          if (match.loserMatchId) {
-            const loserReq2 = matchStore.get(match.loserMatchId);
-            loserReq2.onsuccess = () => {
-              const loserMatch = loserReq2.result;
-              if (loserMatch && loserMatch.status === 'finished') {
-                reject(new Error('No se puede deshacer: el partido del losers bracket ya está finalizado. Deshace ese primero.'));
-                return;
-              }
-              undoMatch(match, matchStore, teamStore, playerStore, eventStore, next);
-            };
-          } else {
-            undoMatch(match, matchStore, teamStore, playerStore, eventStore, next);
-          }
-        };
-      } else if (match.loserMatchId) {
-        const loserReq2 = matchStore.get(match.loserMatchId);
-        loserReq2.onsuccess = () => {
-          const loserMatch = loserReq2.result;
-          if (loserMatch && loserMatch.status === 'finished') {
-            reject(new Error('No se puede deshacer: el partido del losers bracket ya está finalizado. Deshace ese primero.'));
-            return;
-          }
-          undoMatch(match, matchStore, teamStore, playerStore, eventStore, null);
-        };
-      } else {
-        undoMatch(match, matchStore, teamStore, playerStore, eventStore, null);
-      }
+      const leagueReq = leagueStore.get(match.leagueId);
+      leagueReq.onsuccess = () => {
+        const league = leagueReq.result || null;
+        const { homePts, awayPts, homeStatus, awayStatus } = computeMatchResult(
+          league, match.homeTeamId, match.awayTeamId, match.homeScore, match.awayScore
+        );
+
+        if (match.nextMatchId) {
+          const nextReq = matchStore.get(match.nextMatchId);
+          nextReq.onsuccess = () => {
+            const next = nextReq.result;
+            if (next && next.status === 'finished') {
+              reject(new Error('No se puede deshacer: el partido de la siguiente ronda ya está finalizado. Deshace ese primero.'));
+              return;
+            }
+            if (match.loserMatchId) {
+              const loserReq2 = matchStore.get(match.loserMatchId);
+              loserReq2.onsuccess = () => {
+                const loserMatch = loserReq2.result;
+                if (loserMatch && loserMatch.status === 'finished') {
+                  reject(new Error('No se puede deshacer: el partido del losers bracket ya está finalizado. Deshace ese primero.'));
+                  return;
+                }
+                undoMatch(match, matchStore, teamStore, playerStore, eventStore, next, homePts, awayPts, homeStatus, awayStatus);
+              };
+            } else {
+              undoMatch(match, matchStore, teamStore, playerStore, eventStore, next, homePts, awayPts, homeStatus, awayStatus);
+            }
+          };
+        } else if (match.loserMatchId) {
+          const loserReq2 = matchStore.get(match.loserMatchId);
+          loserReq2.onsuccess = () => {
+            const loserMatch = loserReq2.result;
+            if (loserMatch && loserMatch.status === 'finished') {
+              reject(new Error('No se puede deshacer: el partido del losers bracket ya está finalizado. Deshace ese primero.'));
+              return;
+            }
+            undoMatch(match, matchStore, teamStore, playerStore, eventStore, null, homePts, awayPts, homeStatus, awayStatus);
+          };
+        } else {
+          undoMatch(match, matchStore, teamStore, playerStore, eventStore, null, homePts, awayPts, homeStatus, awayStatus);
+        }
+      };
     };
 
     tx.oncomplete = () => resolve();
@@ -185,14 +191,7 @@ async function deshacerPartido(matchId) {
   });
 }
 
-function undoMatch(match, matchStore, teamStore, playerStore, eventStore, nextMatch) {
-  const homeScore = match.homeScore || 0;
-  const awayScore = match.awayScore || 0;
-  let homePts = 0, awayPts = 0;
-  if (homeScore > awayScore) { homePts = 3; awayPts = 0; }
-  else if (homeScore < awayScore) { homePts = 0; awayPts = 3; }
-  else { homePts = 1; awayPts = 1; }
-
+function undoMatch(match, matchStore, teamStore, playerStore, eventStore, nextMatch, homePts, awayPts, homeStatus, awayStatus) {
   match.status = 'scheduled';
   match.homeScore = 0;
   match.awayScore = 0;
@@ -204,11 +203,11 @@ function undoMatch(match, matchStore, teamStore, playerStore, eventStore, nextMa
     const home = homeReq.result;
     if (home) {
       home.stats.pj--;
-      home.stats.pg -= homePts === 3 ? 1 : 0;
-      home.stats.pe -= homePts === 1 ? 1 : 0;
-      home.stats.pp -= homePts === 0 ? 1 : 0;
-      home.stats.pf -= homeScore;
-      home.stats.pc -= awayScore;
+      home.stats.pg -= homeStatus === 'win' ? 1 : 0;
+      home.stats.pe -= homeStatus === 'draw' ? 1 : 0;
+      home.stats.pp -= homeStatus === 'loss' ? 1 : 0;
+      home.stats.pf -= match.homeScore;
+      home.stats.pc -= match.awayScore;
       home.stats.dif = home.stats.pf - home.stats.pc;
       home.stats.pts -= homePts;
       teamStore.put(home);
@@ -220,11 +219,11 @@ function undoMatch(match, matchStore, teamStore, playerStore, eventStore, nextMa
     const away = awayReq.result;
     if (away) {
       away.stats.pj--;
-      away.stats.pg -= awayPts === 3 ? 1 : 0;
-      away.stats.pe -= awayPts === 1 ? 1 : 0;
-      away.stats.pp -= awayPts === 0 ? 1 : 0;
-      away.stats.pf -= awayScore;
-      away.stats.pc -= homeScore;
+      away.stats.pg -= awayStatus === 'win' ? 1 : 0;
+      away.stats.pe -= awayStatus === 'draw' ? 1 : 0;
+      away.stats.pp -= awayStatus === 'loss' ? 1 : 0;
+      away.stats.pf -= match.awayScore;
+      away.stats.pc -= match.homeScore;
       away.stats.dif = away.stats.pf - away.stats.pc;
       away.stats.pts -= awayPts;
       teamStore.put(away);
@@ -286,7 +285,8 @@ function undoMatch(match, matchStore, teamStore, playerStore, eventStore, nextMa
 async function revertMatchStats(matchId) {
   const db = await openDB();
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(['matches', 'teams', 'players', 'events'], 'readwrite');
+    const tx = db.transaction(['leagues', 'matches', 'teams', 'players', 'events'], 'readwrite');
+    const leagueStore = tx.objectStore('leagues');
     const matchStore = tx.objectStore('matches');
     const teamStore = tx.objectStore('teams');
     const playerStore = tx.objectStore('players');
@@ -300,64 +300,65 @@ async function revertMatchStats(matchId) {
         return;
       }
 
-      const homeScore = match.homeScore || 0;
-      const awayScore = match.awayScore || 0;
-      let homePts = 0, awayPts = 0;
-      if (homeScore > awayScore) { homePts = 3; awayPts = 0; }
-      else if (homeScore < awayScore) { homePts = 0; awayPts = 3; }
-      else { homePts = 1; awayPts = 1; }
+      const leagueReq = leagueStore.get(match.leagueId);
+      leagueReq.onsuccess = () => {
+        const league = leagueReq.result || null;
+        const { homePts, awayPts, homeStatus, awayStatus } = computeMatchResult(
+          league, match.homeTeamId, match.awayTeamId, match.homeScore, match.awayScore
+        );
 
-      const homeReq = teamStore.get(match.homeTeamId);
-      homeReq.onsuccess = () => {
-        const home = homeReq.result;
-        if (home && home.stats) {
-          home.stats.pj = Math.max(0, (home.stats.pj || 0) - 1);
-          home.stats.pg = Math.max(0, (home.stats.pg || 0) - (homePts === 3 ? 1 : 0));
-          home.stats.pe = Math.max(0, (home.stats.pe || 0) - (homePts === 1 ? 1 : 0));
-          home.stats.pp = Math.max(0, (home.stats.pp || 0) - (homePts === 0 ? 1 : 0));
-          home.stats.pf = Math.max(0, (home.stats.pf || 0) - homeScore);
-          home.stats.pc = Math.max(0, (home.stats.pc || 0) - awayScore);
-          home.stats.dif = (home.stats.pf || 0) - (home.stats.pc || 0);
-          home.stats.pts = Math.max(0, (home.stats.pts || 0) - homePts);
-          teamStore.put(home);
-        }
-      };
+        const homeReq = teamStore.get(match.homeTeamId);
+        homeReq.onsuccess = () => {
+          const home = homeReq.result;
+          if (home && home.stats) {
+            home.stats.pj = Math.max(0, (home.stats.pj || 0) - 1);
+            home.stats.pg = Math.max(0, (home.stats.pg || 0) - (homeStatus === 'win' ? 1 : 0));
+            home.stats.pe = Math.max(0, (home.stats.pe || 0) - (homeStatus === 'draw' ? 1 : 0));
+            home.stats.pp = Math.max(0, (home.stats.pp || 0) - (homeStatus === 'loss' ? 1 : 0));
+            home.stats.pf = Math.max(0, (home.stats.pf || 0) - match.homeScore);
+            home.stats.pc = Math.max(0, (home.stats.pc || 0) - match.awayScore);
+            home.stats.dif = (home.stats.pf || 0) - (home.stats.pc || 0);
+            home.stats.pts = Math.max(0, (home.stats.pts || 0) - homePts);
+            teamStore.put(home);
+          }
+        };
 
-      const awayReq = teamStore.get(match.awayTeamId);
-      awayReq.onsuccess = () => {
-        const away = awayReq.result;
-        if (away && away.stats) {
-          away.stats.pj = Math.max(0, (away.stats.pj || 0) - 1);
-          away.stats.pg = Math.max(0, (away.stats.pg || 0) - (awayPts === 3 ? 1 : 0));
-          away.stats.pe = Math.max(0, (away.stats.pe || 0) - (awayPts === 1 ? 1 : 0));
-          away.stats.pp = Math.max(0, (away.stats.pp || 0) - (awayPts === 0 ? 1 : 0));
-          away.stats.pf = Math.max(0, (away.stats.pf || 0) - awayScore);
-          away.stats.pc = Math.max(0, (away.stats.pc || 0) - homeScore);
-          away.stats.dif = (away.stats.pf || 0) - (away.stats.pc || 0);
-          away.stats.pts = Math.max(0, (away.stats.pts || 0) - awayPts);
-          teamStore.put(away);
-        }
-      };
+        const awayReq = teamStore.get(match.awayTeamId);
+        awayReq.onsuccess = () => {
+          const away = awayReq.result;
+          if (away && away.stats) {
+            away.stats.pj = Math.max(0, (away.stats.pj || 0) - 1);
+            away.stats.pg = Math.max(0, (away.stats.pg || 0) - (awayStatus === 'win' ? 1 : 0));
+            away.stats.pe = Math.max(0, (away.stats.pe || 0) - (awayStatus === 'draw' ? 1 : 0));
+            away.stats.pp = Math.max(0, (away.stats.pp || 0) - (awayStatus === 'loss' ? 1 : 0));
+            away.stats.pf = Math.max(0, (away.stats.pf || 0) - match.awayScore);
+            away.stats.pc = Math.max(0, (away.stats.pc || 0) - match.homeScore);
+            away.stats.dif = (away.stats.pf || 0) - (away.stats.pc || 0);
+            away.stats.pts = Math.max(0, (away.stats.pts || 0) - awayPts);
+            teamStore.put(away);
+          }
+        };
 
-      const eventReq = eventStore.index('byMatch').getAll(matchId);
-      eventReq.onsuccess = () => {
-        const events = eventReq.result || [];
-        const counts = {};
-        for (const evt of events) {
-          counts[evt.playerId] = (counts[evt.playerId] || 0) + 1;
-        }
-        for (const [playerId, count] of Object.entries(counts)) {
-          const playerReq = playerStore.get(Number(playerId));
-          playerReq.onsuccess = () => {
-            const player = playerReq.result;
-            if (player && player.stats) {
-              player.stats.pj = Math.max(0, (player.stats.pj || 0) - 1);
-              player.stats.anotaciones = Math.max(0, (player.stats.anotaciones || 0) - count);
-              player.stats.promedio = player.stats.pj > 0 ? (player.stats.anotaciones || 0) / player.stats.pj : 0;
-              playerStore.put(player);
-            }
-          };
-        }
+        const eventReq = eventStore.index('byMatch').getAll(matchId);
+        eventReq.onsuccess = () => {
+          const events = eventReq.result || [];
+          const counts = {};
+          for (const evt of events) {
+            counts[evt.playerId] = (counts[evt.playerId] || 0) + 1;
+          }
+          for (const [playerId, count] of Object.entries(counts)) {
+            const playerReq = playerStore.get(Number(playerId));
+            playerReq.onsuccess = () => {
+              const player = playerReq.result;
+              if (player && player.stats) {
+                player.stats.pj = Math.max(0, (player.stats.pj || 0) - 1);
+                player.stats.anotaciones = Math.max(0, (player.stats.anotaciones || 0) - count);
+                player.stats.promedio = player.stats.pj > 0 ? (player.stats.anotaciones || 0) / player.stats.pj : 0;
+                playerStore.put(player);
+              }
+            };
+          }
+        };
       };
     };
 

@@ -9,10 +9,16 @@ class PlayerCard extends HTMLElement {
     this.render();
   }
 
+  set sport(val) {
+    this._sport = val;
+    this.render();
+  }
+
   render() {
     if (!this._data) return;
     const p = this._data;
     const initials = p.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    const scoreLabel = this._sport?.terms?.eventNamePlural || 'anotaciones';
 
     this.shadowRoot.innerHTML = `
       <link rel="stylesheet" href="css/main.css">
@@ -25,7 +31,7 @@ class PlayerCard extends HTMLElement {
           <h4 style="margin:0 0 0.25rem;font-size:0.95rem">${escapeHtml(p.name)}</h4>
           <p style="color:var(--text-muted);font-size:0.75rem;margin:0">
             ${p.position ? `${escapeHtml(p.position)} · ` : ''} #${p.number || '-'}
-            ${p.stats ? `· ${p.stats.anotaciones || 0} ${escapeHtml(getTerm('valorant', 'eventNamePlural'))}` : ''}
+            ${p.stats ? `· ${p.stats.anotaciones || 0} ${escapeHtml(scoreLabel)}` : ''}
           </p>
         </div>
       </div>

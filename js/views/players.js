@@ -9,6 +9,7 @@ async function renderPlayers(main) {
   }
 
   showLoading(true);
+  const sport = getLeagueSport(league);
   const teams = await TeamDB.getByLeague(league.id);
   const teamMap = Object.fromEntries(teams.map(t => [t.id, t]));
   const allPlayers = await PlayerDB.getByLeague(league.id);
@@ -35,7 +36,7 @@ async function renderPlayers(main) {
             ${escapeHtml(team?.name) || ''} ${p.position ? `· ${escapeHtml(p.position)}` : ''} ${p.number ? `· #${p.number}` : ''}
           </p>
           <p style="color:var(--text-secondary);font-size:0.8rem;margin:0.25rem 0 0">
-            ${p.stats?.anotaciones || 0} anotaciones · ${p.stats?.pj || 0} PJ
+            ${p.stats?.anotaciones || 0} ${escapeHtml(sport.terms.eventNamePlural).toLowerCase()} · ${p.stats?.pj || 0} PJ
           </p>
         </div>
       `;
@@ -59,7 +60,7 @@ async function renderPlayers(main) {
 
   main.innerHTML = `
     <div class="section-header">
-      <div class="section-title">👤 Jugadores — ${escapeHtml(league.name)}</div>
+      <div class="section-title"><i class="fa-solid fa-user"></i> Jugadores — ${escapeHtml(league.name)}</div>
       <button class="btn btn-primary" id="btn-create-player">+ Nuevo jugador</button>
     </div>
     <div class="filters-bar">

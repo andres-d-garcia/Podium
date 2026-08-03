@@ -11,7 +11,7 @@ async function renderDashboard(main) {
     return;
   }
 
-  const sport = getSport(league.sport);
+  const sport = getLeagueSport(league);
   const teams = await TeamDB.getByLeague(league.id);
   const allMatches = await MatchDB.getByLeague(league.id);
   const finished = allMatches.filter(m => m.status === 'finished');
@@ -55,30 +55,30 @@ async function renderDashboard(main) {
 
   main.innerHTML = `
     <div class="section-header">
-      <div class="section-title">${sport.icon} ${escapeHtml(league.name)} <span style="font-size:0.9rem;color:var(--text-secondary);font-weight:400">— ${sport.name} · ${escapeHtml(league.season)}</span></div>
+      <div class="section-title"><i class="${sport.icon}"></i> ${escapeHtml(league.name)} <span style="font-size:0.9rem;color:var(--text-secondary);font-weight:400">— ${sport.name} · ${escapeHtml(league.season)}</span></div>
     </div>
     <div class="dashboard-grid">
       <div class="card">
-        <h4>📅 Próximo partido</h4>
+        <h4><i class="fa-solid fa-calendar-days"></i> Próximo partido</h4>
         ${nextHtml}
       </div>
       <div class="card">
-        <h4>🏁 Último resultado</h4>
+        <h4><i class="fa-solid fa-flag-checkered"></i> Último resultado</h4>
         ${lastHtml}
       </div>
       <div class="card full-width">
         ${topHtml}
       </div>
       <div class="card full-width">
-        <h4>Distribución de resultados</h4>
+        <h4><i class="fa-solid fa-chart-pie"></i> Distribución de resultados</h4>
         <podium-chart id="chart-results"></podium-chart>
       </div>
       <div class="card full-width">
-        <h4>Evolución de puntos</h4>
+        <h4><i class="fa-solid fa-chart-line"></i> Evolución de puntos</h4>
         <podium-chart id="chart-evolution"></podium-chart>
       </div>
       <div class="card full-width">
-        <h4>Top anotadores</h4>
+        <h4><i class="fa-solid fa-medal"></i> Top anotadores</h4>
         <podium-chart id="chart-top"></podium-chart>
       </div>
     </div>
@@ -96,7 +96,7 @@ async function renderDashboard(main) {
       if (chartResults) chartResults.renderChart(getResultDistributionChart(teams));
 
       const chartEvolution = main.querySelector('#chart-evolution');
-      const evoConfig = getPointsByDateChart(allMatches, teams);
+      const evoConfig = getPointsByDateChart(allMatches, teams, league);
       if (chartEvolution) chartEvolution.renderChart(evoConfig);
 
       const chartTop = main.querySelector('#chart-top');

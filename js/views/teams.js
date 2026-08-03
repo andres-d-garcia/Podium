@@ -14,7 +14,7 @@ async function renderTeams(main) {
 
   main.innerHTML = `
     <div class="section-header">
-      <div class="section-title">🎮 Equipos — ${escapeHtml(league.name)}</div>
+      <div class="section-title"><i class="fa-solid fa-gamepad"></i> Equipos — ${escapeHtml(league.name)}</div>
       <button class="btn btn-primary" id="btn-create-team">+ Nuevo equipo</button>
     </div>
     <div id="team-list" class="grid-list">

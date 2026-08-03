@@ -9,7 +9,7 @@ async function renderTeamDetail(main, params) {
 
   const players = await PlayerDB.getByTeam(team.id);
   const activeLeague = await getActiveLeague();
-  const sport = activeLeague ? getSport(activeLeague.sport) : SPORTS.valorant;
+  const sport = getLeagueSport(activeLeague);
   const scoreAbbr = sport.terms.scoreAbbr;
   const allMatches = await MatchDB.getByTeam(team.id);
   const matches = allMatches.filter(m => m.leagueId === activeLeague?.id);
@@ -21,10 +21,8 @@ async function renderTeamDetail(main, params) {
 
   for (const m of finished) {
     const isHome = m.homeTeamId === team.id;
-    const scored = isHome ? m.homeScore : m.awayScore;
-    const against = isHome ? m.awayScore : m.homeScore;
-    if (scored > against) pts += 3;
-    else if (scored === against) pts += 1;
+    const { homePts, awayPts } = computeMatchResult(activeLeague, m.homeTeamId, m.awayTeamId, m.homeScore, m.awayScore);
+    pts += isHome ? homePts : awayPts;
     ptsData.push(pts);
   }
 
@@ -50,7 +48,7 @@ async function renderTeamDetail(main, params) {
     </div>
 
     <div class="section-header">
-      <h3 class="section-title" style="font-size:1.1rem">👥 Plantilla (${players.length})</h3>
+      <h3 class="section-title" style="font-size:1.1rem"><i class="fa-solid fa-users"></i> Plantilla (${players.length})</h3>
       <button class="btn btn-primary btn-sm" onclick="router.navigate('players')">+ Agregar jugador</button>
     </div>
     <div class="grid-list" id="team-players">
@@ -58,12 +56,12 @@ async function renderTeamDetail(main, params) {
     </div>
 
     ${upcoming.length > 0 ? `
-      <h3 class="section-title" style="font-size:1.1rem;margin-top:2rem">📅 Próximos partidos</h3>
+      <h3 class="section-title" style="font-size:1.1rem;margin-top:2rem"><i class="fa-solid fa-calendar-days"></i> Próximos partidos</h3>
       <div id="team-upcoming"></div>
     ` : ''}
 
     ${finished.length > 0 ? `
-      <h3 class="section-title" style="font-size:1.1rem;margin-top:2rem">🏁 Partidos jugados</h3>
+      <h3 class="section-title" style="font-size:1.1rem;margin-top:2rem"><i class="fa-solid fa-flag-checkered"></i> Partidos jugados</h3>
       <div id="team-finished"></div>
       <div class="card" style="margin-top:1.5rem">
         <h4>Evolución de puntos</h4>

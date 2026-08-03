@@ -52,18 +52,38 @@ async function refreshActiveLeagueIndicator() {
   const league = await getActiveLeague();
   if (nav) {
     if (league) {
-      const sport = getSport(league.sport);
+      const sport = getLeagueSport(league);
       nav.setAttribute('league-name', league.name);
       nav.setAttribute('league-sport', sport.name);
       nav.setAttribute('league-icon', sport.icon);
-      document.body.setAttribute('data-sport', league.sport);
+      if (league.format) {
+        document.body.removeAttribute('data-sport');
+        const accent = league.format.color || '#ff4655';
+        document.body.style.setProperty('--accent', accent);
+        document.body.style.setProperty('--accent-muted', hexToRgba(accent, 0.15));
+      } else {
+        document.body.setAttribute('data-sport', league.sport);
+        document.body.style.removeProperty('--accent');
+        document.body.style.removeProperty('--accent-muted');
+      }
     } else {
       nav.removeAttribute('league-name');
       nav.removeAttribute('league-sport');
       nav.removeAttribute('league-icon');
       document.body.removeAttribute('data-sport');
+      document.body.style.removeProperty('--accent');
+      document.body.style.removeProperty('--accent-muted');
     }
   }
+}
+
+function hexToRgba(hex, alpha) {
+  const clean = String(hex || '').replace('#', '');
+  if (!/^[0-9a-fA-F]{6}$/.test(clean)) return `rgba(255,70,85,${alpha})`;
+  const r = parseInt(clean.slice(0, 2), 16);
+  const g = parseInt(clean.slice(2, 4), 16);
+  const b = parseInt(clean.slice(4, 6), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
 }
 
 function showToast(message, type = 'info') {

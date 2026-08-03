@@ -30,12 +30,18 @@ class Router {
         this.currentRoute = { pattern, params };
         handler(main, params);
         updateNavActive(hash);
+        if (typeof refreshActiveLeagueIndicator === 'function') {
+          refreshActiveLeagueIndicator();
+        }
         return;
       }
     }
 
     this.routes['dashboard'](main, {});
     updateNavActive('dashboard');
+    if (typeof refreshActiveLeagueIndicator === 'function') {
+      refreshActiveLeagueIndicator();
+    }
   }
 
   start() {

@@ -7,6 +7,8 @@ const NAV_ICONS = {
   stats: '<i class="fa-solid fa-chart-column"></i>',
 };
 
+const LOGO_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="-36 116 341 238" fill="currentColor" style="height:28px;width:auto"><g transform="skewX(-18)"><rect x="80" y="230" width="45" height="120" /><rect x="140" y="120" width="45" height="230" /><path fill-rule="evenodd" d="M 200 160 H 275 C 330 160 365 185 365 225 C 365 265 330 290 275 290 H 245 V 350 H 200 Z M 245 200 H 275 C 300 200 315 208 315 225 C 315 242 300 250 275 250 H 245 Z" /></g></svg>';
+
 class NavBar extends HTMLElement {
   constructor() {
     super();
@@ -104,16 +106,16 @@ class NavBar extends HTMLElement {
     this.shadowRoot.innerHTML = `
       <link rel="stylesheet" href="css/components.css">
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+      <div class="navbar-topbar">
+        <a href="#dashboard" onclick="event.preventDefault(); router.navigate('dashboard')" style="display:flex;align-items:center;gap:0.1rem;color:var(--text-primary);text-decoration:none">
+          ${LOGO_SVG}
+          <span style="font-weight:800;letter-spacing:0.5px">ODIUM</span>
+        </a>
+      </div>
       <nav class="navbar">
         <a href="#dashboard" class="navbar-brand" onclick="event.preventDefault(); router.navigate('dashboard')" style="color:var(--text-primary)">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="-40 100 400 270" fill="currentColor" style="height:28px;width:auto">
-            <g transform="skewX(-18)">
-              <rect x="80" y="230" width="45" height="120" />
-              <rect x="140" y="120" width="45" height="230" />
-              <path fill-rule="evenodd" d="M 200 160 H 275 C 330 160 365 185 365 225 C 365 265 330 290 275 290 H 245 V 350 H 200 Z M 245 200 H 275 C 300 200 315 208 315 225 C 315 242 300 250 275 250 H 245 Z" />
-            </g>
-          </svg>
-          PODIUM
+          ${LOGO_SVG}
+          odium
         </a>
         <div class="navbar-links">
           ${navLinks.map(([href, label]) => `
@@ -124,7 +126,7 @@ class NavBar extends HTMLElement {
           `).join('')}
         </div>
         <div class="navbar-spacer"></div>
-        ${name ? `<div class="navbar-league"><span class="league-dot"></span> ${escapeHtml(icon)} ${escapeHtml(name)} — ${escapeHtml(sport)}</div>` : ''}
+        ${name ? `<div class="navbar-league"><span class="league-dot"></span> <i class="${escapeHtml(icon)}"></i> ${escapeHtml(name)} — ${escapeHtml(sport)}</div>` : ''}
 
         <div class="navbar-fab-wrap">
           <button class="navbar-fab" aria-label="Crear" aria-expanded="false">

@@ -16,7 +16,7 @@ class LeagueCard extends HTMLElement {
   render() {
     if (!this._data) return;
     const l = this._data;
-    const sport = getSport(l.sport);
+    const sport = getLeagueSport(l);
     const modeText = l.mode === 'liga'
       ? `Liga (${l.rounds === 2 ? 'Ida y vuelta' : 'Una vuelta'})`
       : `Eliminación directa${l.doubleElimination ? ' (doble)' : ''} (${l.bracketSize})`;
@@ -24,9 +24,10 @@ class LeagueCard extends HTMLElement {
     this.shadowRoot.innerHTML = `
       <link rel="stylesheet" href="css/main.css">
       <link rel="stylesheet" href="css/components.css">
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
       <div style="display:flex;justify-content:space-between;align-items:start;cursor:pointer" class="league-card-info">
         <div>
-          <h3 style="margin:0 0 0.25rem">${sport.icon} ${escapeHtml(l.name)}</h3>
+          <h3 style="margin:0 0 0.25rem"><i class="${sport.icon}"></i> ${escapeHtml(l.name)}</h3>
           <p style="color:var(--text-secondary);font-size:0.85rem;margin:0">
             ${sport.name} · ${escapeHtml(l.season)}
           </p>

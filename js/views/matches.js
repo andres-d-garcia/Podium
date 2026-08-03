@@ -6,7 +6,7 @@ async function renderMatches(main) {
   }
 
   showLoading(true);
-  const sport = getSport(league.sport);
+  const sport = getLeagueSport(league);
   const teams = await TeamDB.getByLeague(league.id);
   const allMatches = await MatchDB.getByLeague(league.id);
   let filtered = [...allMatches];
@@ -65,7 +65,7 @@ async function renderMatches(main) {
 
   main.innerHTML = `
     <div class="section-header">
-      <div class="section-title">🎮 Partidos — ${escapeHtml(league.name)}</div>
+      <div class="section-title"><i class="fa-solid fa-gamepad"></i> Partidos — ${escapeHtml(league.name)}</div>
       ${league.mode === 'liga' && teams.length >= 2 ? `<button class="btn btn-primary" id="btn-create-match">+ Programar partido</button>` : ''}
     </div>
     <div class="filters-bar">

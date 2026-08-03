@@ -37,7 +37,7 @@ function getTopScorersChart(players, limit = 10, label = 'Anotaciones') {
   );
 }
 
-function getPointsByDateChart(matches, teams) {
+function getPointsByDateChart(matches, teams, league) {
   const finished = matches.filter(m => m.status === 'finished')
     .sort((a, b) => new Date(a.date) - new Date(b.date));
 
@@ -60,11 +60,8 @@ function getPointsByDateChart(matches, teams) {
         return key === date && (m.homeTeamId === team.id || m.awayTeamId === team.id);
       });
       for (const m of dayMatches) {
-        if (m.homeTeamId === team.id) {
-          pts += m.homeScore > m.awayScore ? 3 : m.homeScore === m.awayScore ? 1 : 0;
-        } else {
-          pts += m.awayScore > m.homeScore ? 3 : m.homeScore === m.awayScore ? 1 : 0;
-        }
+        const { homePts, awayPts } = computeMatchResult(league, m.homeTeamId, m.awayTeamId, m.homeScore, m.awayScore);
+        pts += m.homeTeamId === team.id ? homePts : awayPts;
       }
       return pts;
     });

@@ -2,7 +2,7 @@ const SPORTS = {
   valorant: {
     id: 'valorant',
     name: 'Valorant',
-    icon: '🎯',
+    icon: 'fa-solid fa-crosshairs',
     color: '#ff4655',
     theme: 'valorant',
     terms: {
@@ -26,12 +26,18 @@ const SPORTS = {
       stats_title: 'Estadísticas de Escuadra',
     },
     positions: ['Duelista', 'Iniciador', 'Centinela', 'Controlador'],
+    matchStructure: 'single',
+    allowDraw: true,
+    eventsEnabled: true,
+    points: { win: 3, draw: 1, loss: 0 },
+    setsToWin: null,
+    maxSets: null,
   },
 
   fighting: {
     id: 'fighting',
     name: 'Fighting Games',
-    icon: '🥊',
+    icon: 'fa-solid fa-hand-fist',
     color: '#fbbf24',
     theme: 'fighting',
     terms: {
@@ -55,12 +61,18 @@ const SPORTS = {
       stats_title: 'Estadísticas de Luchador',
     },
     positions: ['All-Rounder', 'Zoner', 'Grappler', 'Rushdown', 'Footsies'],
+    matchStructure: 'single',
+    allowDraw: true,
+    eventsEnabled: false,
+    points: { win: 3, draw: 1, loss: 0 },
+    setsToWin: null,
+    maxSets: null,
   },
 
   lol: {
     id: 'lol',
     name: 'League of Legends',
-    icon: '🧙',
+    icon: 'fa-solid fa-hat-wizard',
     color: '#c8aa6e',
     theme: 'lol',
     terms: {
@@ -84,6 +96,12 @@ const SPORTS = {
       stats_title: 'Estadísticas de Equipo',
     },
     positions: ['Top', 'Jungla', 'Mid', 'ADC', 'Support'],
+    matchStructure: 'events',
+    allowDraw: true,
+    eventsEnabled: true,
+    points: { win: 3, draw: 1, loss: 0 },
+    setsToWin: null,
+    maxSets: null,
   },
 };
 
@@ -91,7 +109,43 @@ function getSport(sportId) {
   return SPORTS[sportId] || SPORTS.valorant;
 }
 
+function getLeagueSport(league) {
+  if (league && league.format) return league.format;
+  return getSport(league ? league.sport : 'valorant');
+}
+
 function getTerm(sportId, termKey) {
   const sport = getSport(sportId);
   return sport.terms[termKey] || termKey;
+}
+
+function computeMatchResult(league, homeId, awayId, homeScore, awayScore) {
+  const sport = getLeagueSport(league);
+  const pts = sport.points || { win: 3, draw: 1, loss: 0 };
+  const h = Number(homeScore) || 0;
+  const a = Number(awayScore) || 0;
+  let homePts = 0, awayPts = 0;
+  let homeStatus = 'draw', awayStatus = 'draw';
+  let winnerId = null, loserId = null;
+
+  if (h > a) {
+    homePts = pts.win;
+    awayPts = pts.loss;
+    homeStatus = 'win';
+    awayStatus = 'loss';
+    winnerId = homeId;
+    loserId = awayId;
+  } else if (h < a) {
+    homePts = pts.loss;
+    awayPts = pts.win;
+    homeStatus = 'loss';
+    awayStatus = 'win';
+    winnerId = awayId;
+    loserId = homeId;
+  } else {
+    homePts = pts.draw;
+    awayPts = pts.draw;
+  }
+
+  return { homePts, awayPts, homeStatus, awayStatus, winnerId, loserId, isDraw: h === a };
 }

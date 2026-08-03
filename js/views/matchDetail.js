@@ -8,7 +8,7 @@ async function renderMatchDetail(main, params) {
   }
 
   const league = await getActiveLeague();
-  const sport = league ? getSport(league.sport) : SPORTS.valorant;
+  const sport = getLeagueSport(league);
   const home = await TeamDB.getById(match.homeTeamId);
   const away = await TeamDB.getById(match.awayTeamId);
   const events = await EventDB.getByMatch(match.id);
@@ -18,8 +18,14 @@ async function renderMatchDetail(main, params) {
   let awayEvents = events.filter(e => e.teamId === match.awayTeamId);
   const date = new Date(match.date).toLocaleString('es-ES', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
-  const autoScore = sport.id !== 'valorant' && sport.id !== 'fighting';
-  const showEvents = sport.id !== 'fighting';
+  const structure = sport.matchStructure || 'single';
+  const autoScore = structure === 'events';
+  const manualInputs = !autoScore;
+  const showEvents = sport.eventsEnabled !== false;
+  const allowDraw = sport.allowDraw !== false;
+  const isSets = structure === 'sets';
+  const maxSets = sport.maxSets || 5;
+  const setsToWin = sport.setsToWin || 3;
 
   function renderEvents() {
     const homeCol = main.querySelector('#ev-home');
@@ -79,18 +85,19 @@ async function renderMatchDetail(main, params) {
     ${match.status !== 'finished' ? `
     <div id="event-section">
 
-      ${!autoScore ? `
-      <div style="display:flex;gap:1rem;justify-content:center;align-items:center;margin-bottom:1.5rem">
+      ${manualInputs ? `
+      <div style="display:flex;gap:1rem;justify-content:center;align-items:center;margin-bottom:0.5rem">
         <div style="text-align:center">
           <label style="display:block;font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.25rem">${escapeHtml(home?.name) || 'Local'}</label>
-          <input type="number" id="score-input-home" value="${match.homeScore}" min="0" style="width:60px;text-align:center;font-size:1.5rem;font-weight:800;font-family:var(--font-mono);padding:0.25rem;border:1px solid var(--border-color);border-radius:var(--radius);background:var(--bg-card);color:var(--text-primary)">
+          <input type="number" id="score-input-home" value="${match.homeScore}" min="0" ${isSets ? `max="${maxSets}"` : ''} style="width:60px;text-align:center;font-size:1.5rem;font-weight:800;font-family:var(--font-mono);padding:0.25rem;border:1px solid var(--border-color);border-radius:var(--radius);background:var(--bg-card);color:var(--text-primary)">
         </div>
         <span style="font-size:1.5rem;font-weight:800;color:var(--text-secondary)">-</span>
         <div style="text-align:center">
           <label style="display:block;font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.25rem">${escapeHtml(away?.name) || 'Visitante'}</label>
-          <input type="number" id="score-input-away" value="${match.awayScore}" min="0" style="width:60px;text-align:center;font-size:1.5rem;font-weight:800;font-family:var(--font-mono);padding:0.25rem;border:1px solid var(--border-color);border-radius:var(--radius);background:var(--bg-card);color:var(--text-primary)">
+          <input type="number" id="score-input-away" value="${match.awayScore}" min="0" ${isSets ? `max="${maxSets}"` : ''} style="width:60px;text-align:center;font-size:1.5rem;font-weight:800;font-family:var(--font-mono);padding:0.25rem;border:1px solid var(--border-color);border-radius:var(--radius);background:var(--bg-card);color:var(--text-primary)">
         </div>
       </div>
+      ${isSets ? `<p style="text-align:center;color:var(--text-muted);font-size:0.85rem;margin-bottom:1rem">Al mejor de ${maxSets} ${sport.terms.scoreLabel || 'sets'}: gana quien llegue a ${setsToWin}</p>` : ''}
       ` : ''}
 
       ${showEvents ? `
@@ -150,19 +157,30 @@ async function renderMatchDetail(main, params) {
     }
 
     main.querySelector('#btn-finish').onclick = async () => {
-      if (!autoScore) {
+      if (manualInputs) {
         const homeScore = Number(main.querySelector('#score-input-home').value) || 0;
         const awayScore = Number(main.querySelector('#score-input-away').value) || 0;
         match.homeScore = homeScore;
         match.awayScore = awayScore;
       }
 
-      if (league.mode === 'eliminacion' && match.homeScore === match.awayScore) {
-        showToast('En eliminación directa debes declarar un ganador (marcador no puede quedar empatado)', 'error');
+      const noDraw = !allowDraw || league.mode === 'eliminacion';
+      if (noDraw && match.homeScore === match.awayScore) {
+        showToast('Debes declarar un ganador: el marcador no puede quedar empatado', 'error');
         return;
       }
+
+      if (isSets && match.homeScore !== match.awayScore) {
+        const winnerSets = Math.max(match.homeScore, match.awayScore);
+        const loserSets = Math.min(match.homeScore, match.awayScore);
+        if (winnerSets !== setsToWin || loserSets >= setsToWin || winnerSets > maxSets || loserSets > maxSets) {
+          showToast(`Marcador inválido: se gana al llegar a ${setsToWin} de ${maxSets} ${sport.terms.scoreLabel || 'sets'}`, 'error');
+          return;
+        }
+      }
+
       try {
-        if (!autoScore) {
+        if (manualInputs) {
           await MatchDB.update(match.id, { homeScore: match.homeScore, awayScore: match.awayScore });
         }
         await finalizarPartido(match.id);
