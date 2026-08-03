@@ -4,14 +4,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       navigator.serviceWorker.register('./sw.js');
     }
     await openDB();
-    document.querySelector('podium-footer').setAttribute('db-status', 'connected');
     initRouter();
     await loadSampleData();
     await restoreActiveLeague();
     router.start();
   } catch (e) {
     console.error('Error inicializando Podium:', e);
-    document.querySelector('podium-footer').setAttribute('db-status', 'error');
     document.getElementById('app').innerHTML = `
       <div class="empty-state">
         <h3>Error de conexión</h3>
