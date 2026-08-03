@@ -17,6 +17,7 @@
   font-size: 1.25rem;
   font-weight: 800;
   color: var(--text-primary);
+  text-decoration: none;
   display: flex;
   align-items: center;
   gap: 0.1rem;
