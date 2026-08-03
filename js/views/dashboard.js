@@ -147,8 +147,7 @@ async function renderDashboard(main) {
       const nextId = Number(leagueSelect.value);
       if (nextId && nextId !== league.id) {
         await LeagueDB.setActive(nextId);
-        showToast('Liga activa cambiada', 'success');
-        router.navigate('dashboard');
+        location.reload();
       }
     };
   }
