@@ -115,7 +115,7 @@ class NavBar extends HTMLElement {
       <nav class="navbar">
         <a href="#dashboard" class="navbar-brand" onclick="event.preventDefault(); router.navigate('dashboard')" style="color:var(--text-primary)">
           ${LOGO_SVG}
-          odium
+          ODIUM
         </a>
         <div class="navbar-links">
           ${navLinks.map(([href, label]) => `
