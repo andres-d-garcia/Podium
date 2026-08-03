@@ -1,4 +1,4 @@
-const CACHE = 'podium-v4';
+const CACHE = 'podium-v5';
 
 const PRECACHE = [
   './',

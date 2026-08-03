@@ -6,6 +6,7 @@ async function renderDashboard(main) {
         <h3>Bienvenido a Podium</h3>
         <p>Aún no hay ninguna liga creada. ¡Crea tu primera liga de eSports!</p>
         <button class="btn btn-primary" onclick="router.navigate('leagues')">Crear primera liga</button>
+        <button class="btn btn-secondary" style="margin-top:0.5rem" onclick="router.navigate('help')">Ver guía rápida</button>
       </div>
     `;
     return;
@@ -83,6 +84,21 @@ async function renderDashboard(main) {
       </div>
     </div>
   `;
+
+  if (teams.length === 0) {
+    main.innerHTML += `
+      <div class="card" style="margin-top:1rem">
+        <h4><i class="fa-solid fa-shoe-prints"></i> ¿Cómo usar Podium?</h4>
+        <ol style="margin:0.5rem 0 0 1.25rem;display:flex;flex-direction:column;gap:0.25rem">
+          <li>Agrega equipos en la pestaña <strong>Equipos</strong>.</li>
+          <li>Agrega jugadores en la pestaña <strong>Jugadores</strong>.</li>
+          <li>Genera el calendario desde <strong>Ligas</strong>.</li>
+          <li>Programa y finaliza partidos en <strong>Partidos</strong>.</li>
+        </ol>
+        <button class="btn btn-secondary btn-sm" style="margin-top:0.75rem" onclick="router.navigate('help')">Ver guía completa</button>
+      </div>
+    `;
+  }
 
   if (finished.length > 0) {
     const teamPlayers = [];

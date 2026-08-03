@@ -39,6 +39,7 @@ function initRouter() {
   router.addRoute('matches', renderMatches);
   router.addRoute('match/:id', renderMatchDetail);
   router.addRoute('stats', renderStats);
+  router.addRoute('help', renderHelp);
 }
 
 function getActiveLeague() {

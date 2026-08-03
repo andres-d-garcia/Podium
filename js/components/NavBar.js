@@ -111,6 +111,9 @@ class NavBar extends HTMLElement {
           ${LOGO_SVG}
           <span style="font-weight:800;letter-spacing:0.5px">ODIUM</span>
         </a>
+        <button class="navbar-help" aria-label="Ayuda" onclick="event.preventDefault(); router.navigate('help')">
+          <i class="fa-solid fa-circle-question"></i>
+        </button>
       </div>
       <nav class="navbar">
         <a href="#dashboard" class="navbar-brand" onclick="event.preventDefault(); router.navigate('dashboard')" style="color:var(--text-primary)">
@@ -127,6 +130,9 @@ class NavBar extends HTMLElement {
         </div>
         <div class="navbar-spacer"></div>
         ${name ? `<div class="navbar-league"><span class="league-dot"></span> <i class="${escapeHtml(icon)}"></i> ${escapeHtml(name)} — ${escapeHtml(sport)}</div>` : ''}
+        <button class="navbar-help" aria-label="Ayuda" onclick="event.preventDefault(); router.navigate('help')">
+          <i class="fa-solid fa-circle-question"></i>
+        </button>
 
         <div class="navbar-fab-wrap">
           <button class="navbar-fab" aria-label="Crear" aria-expanded="false">

@@ -37,6 +37,66 @@
   display: none;
 }
 
+.navbar-help {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.15rem;
+  cursor: pointer;
+  padding: 0.35rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navbar-help:hover {
+  color: var(--accent);
+}
+
+.faq-item {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  margin-bottom: 0.5rem;
+  background: var(--bg-card);
+  overflow: hidden;
+}
+
+.faq-item summary {
+  cursor: pointer;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  user-select: none;
+}
+
+.faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-item summary::after {
+  content: '\002B';
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.faq-item[open] summary::after {
+  content: '\2212';
+}
+
+.faq-item .faq-body {
+  padding: 0 1rem 1rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
 .navbar-links {
   display: flex;
   gap: 0.25rem;
@@ -447,12 +507,13 @@
   .navbar-topbar {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     height: 48px;
+    padding: 0 0.75rem;
     background: var(--bg-secondary);
     border-bottom: 1px solid var(--border-color);
     z-index: 100;
@@ -478,6 +539,10 @@
   .navbar-brand,
   .navbar-league,
   .navbar-spacer {
+    display: none;
+  }
+
+  .navbar .navbar-help {
     display: none;
   }
 
