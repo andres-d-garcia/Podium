@@ -1,7 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-40 100 400 270" fill="currentColor">
-  <g transform="skewX(-18)">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-40 100 400 270">
+  <rect x="-40" y="100" width="400" height="270" fill="#ffffff" />
+  <g transform="skewX(-18)" fill="currentColor">
     <rect x="80" y="230" width="45" height="120" />
     <rect x="140" y="120" width="45" height="230" />
-    <path fill-rule="evenodd" d="M 200 160 H 275 C 330 160 365 185 365 225 C 365 265 330 290 275 290 H 245 V 350 H 200 Z M 245 200 H 275 C 300 200 315 208 315 225 C 315 242 300 250 275 250 H 245 Z" />
+    <path fill-rule="evenodd" d="M 200 160 H 275 C 330 160 365 185 365 225 C 365 265 330 290 275 290 H 245 V 350 H 200 Z M 245 200 H 275 C 300 200 315 208 315 225 C 315 242 300 250 275 250 Z" />
   </g>
 </svg>
